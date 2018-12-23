@@ -1,0 +1,4 @@
+#pycharm
+mysite/.idea/**
+mysite/venv/**
+#end of pycharm
