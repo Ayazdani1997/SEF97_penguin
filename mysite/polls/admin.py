@@ -4,5 +4,6 @@ from .models import *
 # Register your models here.
 
 
-admin.site.register(Poll)
-admin.site.register(User)
+# admin.site.register(Poll)
+# admin.site.register(User)
+# admin.site.register(Invitation)
