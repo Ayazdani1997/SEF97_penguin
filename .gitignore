@@ -1,4 +1,5 @@
 #pycharm
 mysite/.idea/**
 mysite/venv/**
+__pycache__/
 #end of pycharm
