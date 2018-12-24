@@ -1,6 +1,16 @@
 from django.db.models.query import EmptyResultSet
 from django.http import HttpResponse, HttpResponseServerError
+from django.core.mail import send_mail
 from polls.models import *
+
+def notifyUser(user):
+    send_mail(
+        "Penguin: invitation to meeting",
+        "You have been invited to a meeting in penguin please check the website for more information",
+        "PenguinTeam@gmail.com",
+        [user.email],
+        fail_silently=False,
+    )
 
 
 def getLoggedInUser():
@@ -17,7 +27,8 @@ def getPollsOwnByUser(user):
 
 def getInvitedPollsByUser(user):
     try:
-        invitaionRecords  =  list(Invitation.objects.filter(user=user))
+        invitaionRecords = list(Invitation.objects.filter(user=user))
+
         return [p.poll for p in invitaionRecords]
 
     except Invitation.DoesNotExist:
@@ -94,7 +105,35 @@ def saveChoiceOfUser(request):
 
 def getPollsOfUser(request):
     user = getLoggedInUser()
-    createdPolls = getPollsOwnByUser(user)
-    invitedPolls = getInvitedPollsByUser(user)
-    createdPolls.append(invitedPolls)
-    return HttpResponse( createdPolls )
+    response = {}
+    response["createdPolls"] = getPollsOwnByUser(user)
+    response["invitedPolls"] = getInvitedPollsByUser(user)
+
+    print(response)
+    return HttpResponse( response )
+
+
+def finalizePoll(request):
+    user = getLoggedInUser()
+    targetPoll = Poll.objects.get(pollId=request.GET['pollId'])
+    if (user != targetPoll.owner):
+        return HttpResponse("you are not authorized to finalize this poll")
+    else:
+        targetPoll.status = 1
+        targetPoll.save()
+        return HttpResponse(" successfully finialized poll %s" % targetPoll.name)
+
+def checkMyPoll(request):
+    user = getLoggedInUser()
+    targetPoll = Poll.objects.get(pollId=request.GET['pollId'])
+    if (user != targetPoll.owner):
+        return HttpResponse("you are not authorized to check the status of this poll")
+    else:
+        participants = Invitation.objects.filter(poll=targetPoll)
+
+
+def emailTest(request):
+    user = getLoggedInUser()
+    notifyUser(user)
+    return HttpResponse("successfully sent email to %s" % user.email)
+

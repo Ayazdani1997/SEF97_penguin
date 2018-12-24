@@ -34,5 +34,5 @@ class PollOptionAssociation(models.Model):
 
 
 class Invitation(models.Model):
-    poll = models.ForeignKey(Poll, on_delete=models.CASCADE)
+    pollOptionAssociation = models.ForeignKey(PollOptionAssociation, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
