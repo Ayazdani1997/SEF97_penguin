@@ -131,7 +131,6 @@ def checkMyPoll(request):
         try:
             pollOptionAssociations = PollOptionAssociation.objects.get(poll=targetPoll)
             participants = list(pollOptionAssociations.choice_set.values_list('user', flat=True))
-            print(participants)
             return HttpResponse(participants)
         except PollOptionAssociation.DoesNotExist:
             return HttpResponse([])
