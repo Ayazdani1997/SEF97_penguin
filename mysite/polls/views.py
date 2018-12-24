@@ -130,12 +130,15 @@ def checkMyPoll(request):
     else:
         try:
             pollOptionAssociations = PollOptionAssociation.objects.get(poll=targetPoll)
-            participants = list(pollOptionAssociations.choice_set().value_list('user', flat=True))
+            participants = list(pollOptionAssociations.choice_set.values_list('user', flat=True))
+            print(participants)
             return HttpResponse(participants)
+        except PollOptionAssociation.DoesNotExist:
+            return HttpResponse([])
         except Choice.DoesNotExist:
             return HttpResponse([])
         except User.DoesNotExist:
-            return HttpResponseServerError( "internal server error" )
+            return HttpResponseServerError("internal server error")
 
 
 def emailTest(request):

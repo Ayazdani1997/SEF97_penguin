@@ -7,8 +7,8 @@ urlpatterns = [
     path('getPoll', views.getPollsById, name='getPollsById'),
     path('getOptions', views.getOptionsOfPoll, name='getOptionsOfPoll'),
     path('saveChoice', views.saveChoiceOfUser, name='saveChoiceOfUser'),
-    path('polls', views.getPollsOfUser , name='getPollsOfUser'),
+    path('polls', views.getPollsOfUser, name='getPollsOfUser'),
     path('emailTest', views.emailTest, name='emailTest'),
     path('finalizePoll', views.finalizePoll, name='finalizePoll'),
-
+    path('checkPoll', views.checkMyPoll, name='checkMyPoll')
 ]
