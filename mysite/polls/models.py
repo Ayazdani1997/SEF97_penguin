@@ -5,13 +5,14 @@ from django.db import models
 
 
 class User(models.Model):
-    name = models.CharField(max_length=200)
-    uid = models.IntegerField(primary_key=True)
+    username = models.CharField(max_length=200)
+    uid = models.AutoField(primary_key=True)
     email = models.EmailField(max_length=200)
-
+    def getByUserName(self , username ) :
+        return self.objects.get( username = username)
 
 class Poll(models.Model):
-    pollId = models.IntegerField(primary_key=True)
+    pollId = models.AutoField(primary_key=True)
     name = models.CharField(max_length=200)
     des = models.CharField(max_length=200, default=None)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
