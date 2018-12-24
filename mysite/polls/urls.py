@@ -6,5 +6,6 @@ urlpatterns = [
     path('createPoll', views.createNewPoll, name='createNewPoll'),
     path('getPoll', views.getPollsById, name='getPollsById'),
     path('getOptions', views.getOptionsOfPoll, name='getOptionsOfPoll'),
-    path('saveChoice', views.saveChoiceOfUser, name='saveChoiceOfUser')
+    path('saveChoice', views.saveChoiceOfUser, name='saveChoiceOfUser'),
+    path( 'polls' , views.getPollsOfUser , name='getPollsOfUser')
 ]
