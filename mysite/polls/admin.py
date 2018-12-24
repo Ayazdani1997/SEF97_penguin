@@ -7,3 +7,6 @@ from .models import *
 admin.site.register(Poll)
 admin.site.register(User)
 admin.site.register(Invitation)
+admin.site.register(PollOptionAssociation)
+admin.site.register(Choice)
+admin.site.register(Option)
