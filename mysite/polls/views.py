@@ -14,6 +14,9 @@ def notifyUser(user):
     )
 
 
+def getOption(choice):
+    return choice.pollOptionAssociation.option.text
+
 def getLoggedInUser():
     loggedInUser = User.objects.get(username="ahmad")
     return loggedInUser
@@ -54,14 +57,16 @@ def createNewPoll(request):
         newPoll = Poll.objects.create(name=pollName, des=pollDes, owner=user)
         optionsTexts = request.GET['options']
         for optionText in optionsTexts:
-            newOption, created = Option.get_or_create(text=optionText)
+            try:
+                newOption = Option.objects.get(text=optionText)
+            except Option.DoesNotExist:
+                newOption = Option.objects.create(text=optionsTexts)
             PollOptionAssociation.objects.create(poll=newPoll, option=newOption)
-        invitedUserIds = request.GET['invitedList']
-        for userId in invitedUserIds:
-            targetUser = User.objects.get(uid=userId)
+        invitedUserEmails = request.GET['invitedList']
+        for userEmail in invitedUserEmails:
+            targetUser = User.objects.get(email=userEmail)
             notifyUser(targetUser)
             Invitation.objects.create(poll=newPoll, user=targetUser)
-
 
 
     except KeyError:
@@ -120,10 +125,13 @@ def saveChoiceOfUser(request):
 
 def getPollsOfUser(request):
     user = getLoggedInUser()
-    response = {"createdPolls": getPollsOwnByUser(user), "invitedPolls": getInvitedPollsByUser(user)}
+    response = {}
+    response['createdPolls'] = [p.name for p in getPollsOwnByUser(user)]
+    response["invitedPolls"] = [u.username for u in getInvitedPollsByUser(user)]
 
     print(response)
-    return HttpResponse(response)
+    jsonResponse = json.dumps(response)
+    return HttpResponse(jsonResponse)
 
 
 def finalizePoll(request):
@@ -144,13 +152,25 @@ def checkMyPoll(request):
         return HttpResponse("you are not authorized to check the status of this poll")
     else:
         try:
-            pollOptionAssociations = PollOptionAssociation.objects.get(poll=targetPoll)
-            participants = list(pollOptionAssociations.choice_set.values_list('user', flat=True))
-            return HttpResponse(participants)
+            pollOptionAssociations = list(PollOptionAssociation.objects.filter(poll=targetPoll))
+            choices = []
+            for POA in pollOptionAssociations:
+                choices.append(list(Choice.objects.filter(pollOptionAssociation=POA)))
+            # participants = [p.user for p in pollOptionAssociations]
+            print(choices)
+            response = {}
+            for choice in choices:
+                for c in choice:
+                    print(c.user.username)
+                    print(c.answer)
+                    response[c.pollOptionAssociation.option.text] = {"user" : c.user.username, "answer": c.answer}
+                    # response[c.user.username] = c.answer
+            jsonResponse = json.dumps(response)
+            return HttpResponse(jsonResponse)
         except PollOptionAssociation.DoesNotExist:
-            return HttpResponse([])
+            return HttpResponse("POA doesn't exist")
         except Choice.DoesNotExist:
-            return HttpResponse([])
+            return HttpResponse("Choice doesnt exist")
         except User.DoesNotExist:
             return HttpResponseServerError("internal server error")
 
