@@ -2,4 +2,5 @@
 mysite/.idea/**
 mysite/venv/**
 __pycache__/
+mysite/polls/migrations/**
 #end of pycharm
