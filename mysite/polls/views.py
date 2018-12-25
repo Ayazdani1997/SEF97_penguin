@@ -2,7 +2,7 @@ from django.db.models.query import EmptyResultSet
 from django.http import HttpResponse, HttpResponseServerError
 from django.core.mail import send_mail
 from .models import *
-
+import json
 
 def notifyUser(user):
     send_mail(
@@ -66,7 +66,10 @@ def getPollsById(request):
     except Poll.DoesNotExist:
         return HttpResponse("requested poll does not exist in system!")
     else:
-        return HttpResponse(requestedPoll)
+        data = {}
+        data['pollId'] = requestedPoll.pollId
+        jsonPoll = json.dumps(data)
+        return HttpResponse(jsonPoll)
 
 
 def getOptionsOfPoll(request):
