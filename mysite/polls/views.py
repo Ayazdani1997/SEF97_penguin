@@ -51,7 +51,19 @@ def createNewPoll(request):
     try:
         pollName = request.GET['name']
         pollDes = request.GET['des']
-        Poll.objects.create(name=pollName, des=pollDes, owner=user)
+        newPoll = Poll.objects.create(name=pollName, des=pollDes, owner=user)
+        optionsTexts = request.GET['options']
+        for optionText in optionsTexts:
+            newOption, created = Option.get_or_create(text=optionText)
+            PollOptionAssociation.objects.create(poll=newPoll, option=newOption)
+        invitedUserIds = request.GET['invitedList']
+        for userId in invitedUserIds:
+            targetUser = User.objects.get(uid=userId)
+            notifyUser(targetUser)
+            Invitation.objects.create(poll=newPoll, user=targetUser)
+
+
+
     except KeyError:
         return HttpResponseServerError("internal server error")
     else:
@@ -66,10 +78,10 @@ def getPollsById(request):
     except Poll.DoesNotExist:
         return HttpResponse("requested poll does not exist in system!")
     else:
-        data = {}
-        data['pollId'] = requestedPoll.pollId
-        jsonPoll = json.dumps(data)
-        return HttpResponse(jsonPoll)
+        # data = {}
+        # data['pollId'] = requestedPoll.pollId
+        # jsonPoll = json.dumps(data)
+        return HttpResponse(requestedPoll)
 
 
 def getOptionsOfPoll(request):
