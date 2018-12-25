@@ -1,7 +1,7 @@
 from django.db.models.query import EmptyResultSet
 from django.http import HttpResponse, HttpResponseServerError
 from django.core.mail import send_mail
-from polls.models import *
+from .models import *
 
 
 def notifyUser(user):
