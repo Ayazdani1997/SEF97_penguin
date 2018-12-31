@@ -4,6 +4,7 @@ from django.core.mail import send_mail
 from .models import *
 import json
 
+
 def notifyUser(user):
     send_mail(
         "Penguin: invitation to meeting",
@@ -17,6 +18,8 @@ def notifyUser(user):
 def getOption(choice):
     return choice.pollOptionAssociation.option.text
 
+
+
 def getLoggedInUser():
     loggedInUser = User.objects.get(username="ahmad")
     return loggedInUser
@@ -24,7 +27,7 @@ def getLoggedInUser():
 
 def getPollsOwnByUser(user):
     try:
-        return list(Poll.objects.filter(owner=user))
+        return [{"name":p.name, "description": p.des, "id": p.pollId} for p in list(Poll.objects.filter(owner=user))]
     except Poll.DoesNotExist:
         return []
 
@@ -32,8 +35,8 @@ def getPollsOwnByUser(user):
 def getInvitedPollsByUser(user):
     try:
         invitaionRecords = list(Invitation.objects.filter(user=user))
-        return [p.poll for p in invitaionRecords]
-
+        invitedPolls = [p.poll for p in invitaionRecords]
+        return [{"name": p.name, "description": p.des, "id": p.pollId} for p in invitedPolls]
     except Invitation.DoesNotExist:
         return []
 
@@ -42,9 +45,10 @@ def getInvitedPollsByUser(user):
 def login(request):
     try:
         username = request.GET['username']
-        loggedInUser = User.objects.get(username=username)
+        email = request.GET['email']
+        loggedInUser = User.objects.get(username=username, email=email)
     except User.DoesNotExist:
-        return HttpResponse("this user does not exist in system")
+        return HttpResponse(loggedInUser)
     else:
         return HttpResponse(loggedInUser)
 
@@ -62,9 +66,9 @@ def createNewPoll(request):
             except Option.DoesNotExist:
                 newOption = Option.objects.create(text=optionsTexts)
             PollOptionAssociation.objects.create(poll=newPoll, option=newOption)
-        invitedUserEmails = request.GET['invitedList']
-        for userEmail in invitedUserEmails:
-            targetUser = User.objects.get(email=userEmail)
+        invitedUserIds= request.GET['invitedList']
+        for userId in invitedUserIds:
+            targetUser = User.objects.get(uid=userId)
             notifyUser(targetUser)
             Invitation.objects.create(poll=newPoll, user=targetUser)
 
@@ -83,10 +87,10 @@ def getPollsById(request):
     except Poll.DoesNotExist:
         return HttpResponse("requested poll does not exist in system!")
     else:
-        # data = {}
-        # data['pollId'] = requestedPoll.pollId
-        # jsonPoll = json.dumps(data)
-        return HttpResponse(requestedPoll)
+        data = {}
+        data['pollId'] = requestedPoll.pollId
+        jsonPoll = json.dumps(data)
+        return HttpResponse(jsonPoll)
 
 
 def getOptionsOfPoll(request):
@@ -126,8 +130,8 @@ def saveChoiceOfUser(request):
 def getPollsOfUser(request):
     user = getLoggedInUser()
     response = {}
-    response['createdPolls'] = [p.name for p in getPollsOwnByUser(user)]
-    response["invitedPolls"] = [u.username for u in getInvitedPollsByUser(user)]
+    response['createdPolls'] = getPollsOwnByUser(user)
+    response["invitedPolls"] = getInvitedPollsByUser(user)
 
     print(response)
     jsonResponse = json.dumps(response)
@@ -153,19 +157,33 @@ def checkMyPoll(request):
     else:
         try:
             pollOptionAssociations = list(PollOptionAssociation.objects.filter(poll=targetPoll))
-            choices = []
+            finalResponse = []
+
             for POA in pollOptionAssociations:
-                choices.append(list(Choice.objects.filter(pollOptionAssociation=POA)))
-            # participants = [p.user for p in pollOptionAssociations]
-            print(choices)
-            response = {}
-            for choice in choices:
-                for c in choice:
-                    print(c.user.username)
-                    print(c.answer)
-                    response[c.pollOptionAssociation.option.text] = {"user" : c.user.username, "answer": c.answer}
-                    # response[c.user.username] = c.answer
-            jsonResponse = json.dumps(response)
+                option = POA.option
+                optionChoice = {"id" : option.id, "text": option.text}
+                print(optionChoice)
+
+                choices = (list(Choice.objects.filter(pollOptionAssociation=POA)))
+                selectors = []
+                rejectors = []
+                maybe = []
+                for c in choices:
+                        print(c.user.username)
+                        print(c.answer)
+                        if (c.answer ==1):
+                            selectors.append(c.user.username)
+                        elif (c.answer == 2):
+                            rejectors.append(c.user.username)
+                        elif (c.answer == 3):
+                            maybe.append(c.user.username)
+
+                optionChoice["selectors"] = selectors
+                optionChoice["rejectors"] = rejectors
+                optionChoice["maybe"] = maybe
+                finalResponse.append(optionChoice)
+
+            jsonResponse = json.dumps(finalResponse)
             return HttpResponse(jsonResponse)
         except PollOptionAssociation.DoesNotExist:
             return HttpResponse("POA doesn't exist")

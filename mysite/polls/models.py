@@ -3,14 +3,10 @@ from django.db import models
 
 # Create your models here.
 
-
 class User(models.Model):
     username = models.CharField(max_length=200)
     uid = models.AutoField(primary_key=True)
     email = models.EmailField(max_length=200)
-
-    def getByUserName(self, username):
-        return self.objects.get(username=username)
 
 
 class Poll(models.Model):
@@ -33,7 +29,7 @@ class PollOptionAssociation(models.Model):
 class Choice(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     pollOptionAssociation = models.ForeignKey(PollOptionAssociation, on_delete=models.CASCADE, null=True)
-    answer = models.IntegerField(default=0)
+    answer = models.IntegerField(default=0) #enum - choices
 
 
 class Invitation(models.Model):
