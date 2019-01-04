@@ -52,6 +52,7 @@ MIDDLEWARE = [
 
 
 CSRF_COOKIE_SECURE = False
+CORS_ALLOW_CREDENTIALS = True
 
 ROOT_URLCONF = 'mysite.urls'
 

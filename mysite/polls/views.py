@@ -44,13 +44,21 @@ def getInvitedPollsByUser(user):
 # Create your views here.
 def login(request):
     try:
+        print("we got a login request")
         username = request.GET['username']
         email = request.GET['email']
+        print ("before DB")
         loggedInUser = User.objects.get(username=username, email=email)
+        print("after DB")
     except User.DoesNotExist:
+        # return HttpResponse("the DB has fucked us")
+        print ("exception in login")
         return HttpResponse(loggedInUser)
     else:
+        print("okay in logins")
         return HttpResponse(loggedInUser)
+        # return HttpResponse("the DB has fucked us")
+
 
 
 def createNewPoll(request):
