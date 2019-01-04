@@ -1,6 +1,8 @@
 from django.db.models.query import EmptyResultSet
-from django.http import HttpResponse, HttpResponseServerError
+from django.http import HttpResponse, HttpResponseServerError, HttpResponseBadRequest
 from django.core.mail import send_mail
+from django.utils.datastructures import MultiValueDictKeyError
+
 from .models import *
 import json
 
@@ -19,7 +21,6 @@ def getOption(choice):
     return choice.pollOptionAssociation.option.text
 
 
-
 def getLoggedInUser():
     loggedInUser = User.objects.get(username="ahmad")
     return loggedInUser
@@ -27,7 +28,7 @@ def getLoggedInUser():
 
 def getPollsOwnByUser(user):
     try:
-        return [{"name":p.name, "description": p.des, "id": p.pollId} for p in list(Poll.objects.filter(owner=user))]
+        return [{"name": p.name, "description": p.des, "id": p.pollId} for p in list(Poll.objects.filter(owner=user))]
     except Poll.DoesNotExist:
         return []
 
@@ -44,13 +45,19 @@ def getInvitedPollsByUser(user):
 # Create your views here.
 def login(request):
     try:
-        username = request.GET['username']
-        email = request.GET['email']
+        try:
+            username = request.GET['username']
+            email = request.GET['email']
+        except MultiValueDictKeyError:
+            return HttpResponseBadRequest("no or more than one user specified on login request" )
         loggedInUser = User.objects.get(username=username, email=email)
     except User.DoesNotExist:
-        return HttpResponse(loggedInUser)
+        return HttpResponseBadRequest("user does not exists")
     else:
-        return HttpResponse(loggedInUser)
+        userInfo = {'username': username}
+        response = HttpResponse(json.dump(userInfo))
+        response.set_cookie('username', username)
+        return response
 
 
 def createNewPoll(request):
@@ -66,7 +73,7 @@ def createNewPoll(request):
             except Option.DoesNotExist:
                 newOption = Option.objects.create(text=optionsTexts)
             PollOptionAssociation.objects.create(poll=newPoll, option=newOption)
-        invitedUserIds= request.GET['invitedList']
+        invitedUserIds = request.GET['invitedList']
         for userId in invitedUserIds:
             targetUser = User.objects.get(uid=userId)
             notifyUser(targetUser)
@@ -161,7 +168,7 @@ def checkMyPoll(request):
 
             for POA in pollOptionAssociations:
                 option = POA.option
-                optionChoice = {"id" : option.id, "text": option.text}
+                optionChoice = {"id": option.id, "text": option.text}
                 print(optionChoice)
 
                 choices = (list(Choice.objects.filter(pollOptionAssociation=POA)))
@@ -169,14 +176,14 @@ def checkMyPoll(request):
                 rejectors = []
                 maybe = []
                 for c in choices:
-                        print(c.user.username)
-                        print(c.answer)
-                        if (c.answer ==1):
-                            selectors.append(c.user.username)
-                        elif (c.answer == 2):
-                            rejectors.append(c.user.username)
-                        elif (c.answer == 3):
-                            maybe.append(c.user.username)
+                    print(c.user.username)
+                    print(c.answer)
+                    if (c.answer == 1):
+                        selectors.append(c.user.username)
+                    elif (c.answer == 2):
+                        rejectors.append(c.user.username)
+                    elif (c.answer == 3):
+                        maybe.append(c.user.username)
 
                 optionChoice["selectors"] = selectors
                 optionChoice["rejectors"] = rejectors
