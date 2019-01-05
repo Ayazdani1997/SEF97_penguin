@@ -21,7 +21,7 @@ class AuthenticationMiddleware:
             try:
                 username = request.COOKIES['username']
                 user = User.objects.get(username=username)
-                request.user = user
+                request.user = username
             except KeyError:
                 return HttpResponseForbidden("forbidden page")
             except User.DoesNotExist:
