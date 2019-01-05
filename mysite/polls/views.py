@@ -205,11 +205,11 @@ def checkMyPoll(request):
                         print(c.user.username)
                         print(c.answer)
                         if (c.answer ==1):
-                            selectors.append(c.user.username)
+                            selectors.append({"name": c.user.username})
                         elif (c.answer == 2):
-                            rejectors.append(c.user.username)
+                            rejectors.append({"name": c.user.username})
                         elif (c.answer == 3):
-                            maybe.append(c.user.username)
+                            maybe.append({"name": c.user.username})
 
                 optionChoice["selectors"] = selectors
                 optionChoice["rejectors"] = rejectors
