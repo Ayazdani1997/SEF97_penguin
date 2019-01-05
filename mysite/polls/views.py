@@ -1,5 +1,6 @@
 from django.db.models.query import EmptyResultSet
-from django.http import HttpResponse, HttpResponseServerError, HttpResponseBadRequest, HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseServerError, HttpResponseBadRequest, HttpResponseForbidden, \
+    HttpResponseNotFound
 from django.core.mail import send_mail
 from django.utils.datastructures import MultiValueDictKeyError
 
@@ -57,7 +58,7 @@ def login(request):
         return HttpResponseBadRequest("no or more than one user specified on login request")
     except User.DoesNotExist:
         print ("User does not exist exception in login")
-        return HttpResponse(loggedInUser)
+        return HttpResponseNotFound("the user does not exists in system")
     except KeyError:
         print("arg not provided")
         loggedInUser = getLoggedInUser()
