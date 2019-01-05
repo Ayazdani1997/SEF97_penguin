@@ -232,7 +232,7 @@ def getCommentsOfOption(request):
         optionId = request.GET['optionId']
     except KeyError:
         return HttpResponseBadRequest("no poll or option identified")
-    option = Option.objects.get(optionId=optionId)
+    option = Option.objects.get(OptionId=optionId)
     poll = Poll.objects.get(pollId=pollId)
     if not isInvitedToPollOrOwner(request.loggedInUser, poll):
         return HttpResponseForbidden('you are not invited to this poll')
@@ -244,14 +244,17 @@ def getCommentsOfOption(request):
     return response
 
 
+@csrf_exempt
 def saveCommentOfOption(request):
     try:
-        pollId = request.GET['pollId']
-        optionId = request.GET['optionId']
-        comment_text = request.GET['comment_text']
+        body = json.loads(request.body)
+        print("####this is save comment")
+        pollId = body['pollId']
+        optionId = body['optionId']
+        comment_text = body['comment_text']
     except KeyError:
         return HttpResponseBadRequest("no poll or option identified, plus, comment must have a text")
-    option = Option.objects.get(text=optionId)
+    option = Option.objects.get(OptionId=1)
     poll = Poll.objects.get(pollId=pollId)
     if not isInvitedToPollOrOwner(request.loggedInUser, poll):
         return HttpResponseForbidden('you are not invited to this poll')
