@@ -4,6 +4,8 @@ from django.core.mail import send_mail
 from django.utils.datastructures import MultiValueDictKeyError
 
 from .models import *
+from django.views.decorators.csrf import csrf_exempt
+
 import json
 
 
@@ -21,9 +23,15 @@ def getOption(choice):
     return choice.pollOptionAssociation.option.text
 
 
+
+def getLoggedInUser():
+    loggedInUser = User.objects.get(username="ali")
+    return loggedInUser
+
+
 def getPollsOwnByUser(user):
     try:
-        return [{"name": p.name, "description": p.des, "id": p.pollId} for p in list(Poll.objects.filter(owner=user))]
+        return [{"name":p.name, "description": p.des, "id": p.pollId} for p in list(Poll.objects.filter(owner=user))]
     except Poll.DoesNotExist:
         return []
 
@@ -40,15 +48,23 @@ def getInvitedPollsByUser(user):
 # Create your views here.
 def login(request):
     try:
+        print("we got a login request")
         username = request.GET['username']
         email = request.GET['email']
+        print ("before DB")
         loggedInUser = User.objects.get(username=username, email=email)
     except MultiValueDictKeyError:
         return HttpResponseBadRequest("no or more than one user specified on login request")
     except User.DoesNotExist:
-        return HttpResponseBadRequest("user does not exists")
+        print ("User does not exist exception in login")
+        return HttpResponse(loggedInUser)
+    except KeyError:
+        print("arg not provided")
+        loggedInUser = getLoggedInUser()
+        loggedInUser = {"username": loggedInUser.username, "email": loggedInUser.email}
+        return HttpResponse(json.dumps(loggedInUser))
     else:
-        userInfo = {'username': username}
+        userInfo = {'username': username, "email" : email}
         response = HttpResponse(json.dumps(userInfo))
         response.set_cookie('username', username)
         return response
@@ -106,17 +122,26 @@ def getOptionsOfPoll(request):
         return HttpResponse(option)
 
 
+@csrf_exempt
 def saveChoiceOfUser(request):
+    print("saveChoiceOfUser")
     global optionText
     try:
-        pollId = request.GET['pollId']
-        optionText = request.GET['optionText']
+        body = json.loads(request.body)['body']
+        pollId = body["pollId"]
+        print(pollId)
+        choices = body['choices']
+        print(choices)
         poll = Poll.objects.get(pollId=pollId)
-        option = Option.objects.get(text=optionText)
-        user = request.loggedInUser
-        Choice.objects.create(user=user, option=option)
-    except Poll.DoesNotExist:
-        return HttpResponse("requested poll does not exist in system!")
+        user = getLoggedInUser()
+        for choice in choices:
+            print (choice['id'])
+            print (choice['choice'])
+            pollOptionAssociation = PollOptionAssociation.objects.get(id=choice['id'])
+            Choice.objects.create(user=user, pollOptionAssociation=pollOptionAssociation)
+            Choice.save()
+    except PollOptionAssociation.DoesNotExist:
+        return HttpResponse("requested polloptassociation does not exist in system!")
     except Option.DoesNotExist:
         return HttpResponse("option %s does not exist in this poll" % optionText)
     except PollOptionAssociation.DoesNotExist:
