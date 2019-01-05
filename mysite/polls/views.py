@@ -4,6 +4,7 @@ from django.http import HttpResponse, HttpResponseServerError, HttpResponseBadRe
 from django.core.mail import send_mail
 from django.utils.datastructures import MultiValueDictKeyError
 
+import datetime
 from .models import *
 from django.views.decorators.csrf import csrf_exempt
 
@@ -79,31 +80,54 @@ def login(request):
         response.set_cookie('username', username)
         return response
 
-
+@csrf_exempt
 def createNewPoll(request):
     user = request.loggedInUser
     try:
-        pollName = request.GET['name']
-        pollDes = request.GET['des']
+        body = json.loads(request.body)['body']
+        pollName = body['name']
+        pollDes = body['description']
         newPoll = Poll.objects.create(name=pollName, des=pollDes, owner=user)
-        optionsTexts = request.GET['options']
-        for optionText in optionsTexts:
-            try:
-                newOption = Option.objects.get(text=optionText)
-            except Option.DoesNotExist:
-                newOption = Option.objects.create(text=optionsTexts)
-            PollOptionAssociation.objects.create(poll=newPoll, option=newOption)
-        invitedUserIds = request.GET['invitedList']
-        for userId in invitedUserIds:
-            targetUser = User.objects.get(uid=userId)
-            notifyUser(targetUser)
-            Invitation.objects.create(poll=newPoll, user=targetUser)
+        newPoll.save()
 
 
     except KeyError:
         return HttpResponseServerError("internal server error")
     else:
-        return HttpResponse("poll %s created successfully" % Poll.objects.get(name=pollName).des)
+        return HttpResponse(json.dumps({'pollId': newPoll.pollId}))
+
+@csrf_exempt
+def addOption(request):
+    body = json.loads(request.body)['body']
+    print(body)
+    newPoll = Poll.objects.get(pollId=body['id'])
+    optionsTexts = body['options']
+    for optionText in optionsTexts:
+        try:
+            newOption = Option.objects.get(text=optionText)
+            print("we already have the option")
+
+        except Option.DoesNotExist:
+            print("option does not exist")
+            newOption = Option.objects.create(text=optionText)
+            newOption.save()
+            print("created option")
+        newPollOptAss = PollOptionAssociation.objects.create(poll=newPoll, option=newOption)
+        newPollOptAss.save()
+        print("created poll option ass new")
+
+@csrf_exempt
+def addParticipants(request):
+    body = json.loads(request.body)['body']
+    print(body)
+    newPoll = Poll.objects.get(pollId=body['id'])
+    invitedUserEmails= body['participants']
+    for email in invitedUserEmails:
+        targetUser = User.objects.get(email=email)
+        print(targetUser)
+        notifyUser(targetUser)
+        newInvitation = Invitation.objects.create(poll=newPoll, user=targetUser)
+        newInvitation.save()
 
 
 def getPollsById(request):
@@ -119,23 +143,38 @@ def getPollsById(request):
         return HttpResponse(jsonPoll)
 
 
+def checkOverlap(request):
+    dateTime = request.GET['dateTime']
+    print (dateTime)
+    dateTime = datetime.datetime.strptime(dateTime, "%Y-%m-%d %H:%M")
+    print(dateTime)
+
+    user = getLoggedInUser()
+    return HttpResponse("checkoverlap")
+
+
 def getOptionsOfPoll(request):
     try:
         pollId = request.GET['pollId']
         requestedPoll = Poll.objects.get(pollId=pollId)
-        option = PollOptionAssociation.objects.get(poll=requestedPoll).option
+        option_associations = PollOptionAssociation.objects.filter(poll=requestedPoll)
+        response = []
+        for option_association in option_associations:
+            option = option_association.option
+            new_response = {"id": option.OptionId, "text": option.text}
+            response.append(new_response)
     except Poll.DoesNotExist:
         return HttpResponse("requested poll does not exist in system!")
     except EmptyResultSet:
         return HttpResponse("this poll does not have any options!")
     else:
-        return HttpResponse(option)
+
+        return HttpResponse(json.dumps(response))
 
 
 @csrf_exempt
 def saveChoiceOfUser(request):
     print("saveChoiceOfUser")
-    global optionText
     try:
         body = json.loads(request.body)['body']
         pollId = body["pollId"]
@@ -146,20 +185,41 @@ def saveChoiceOfUser(request):
         user = request.loggedInUser
         for choice in choices:
             print(choice['id'])
-            print(choice['choice'])
+            print(choice['answer'])
             pollOptionAssociation = PollOptionAssociation.objects.get(id=choice['id'])
-            new_choice = Choice.objects.create(user=user, pollOptionAssociation=pollOptionAssociation)
-            new_choice.save()
+            newChoice = Choice.objects.create(user=user, pollOptionAssociation=pollOptionAssociation,
+                                              answer=choice['answer'])
+            newChoice.save()
     except PollOptionAssociation.DoesNotExist:
         return HttpResponse("requested polloptassociation does not exist in system!")
     except Option.DoesNotExist:
-        return HttpResponse("option %s does not exist in this poll" % optionText)
+        return HttpResponse("option %s does not exist in this poll")
     except PollOptionAssociation.DoesNotExist:
-        return HttpResponse("option %s does not exist in this poll" % optionText)
+        return HttpResponse("option %s does not exist in this poll")
     except KeyError:
         return HttpResponseServerError("internal server error")
     else:
         return HttpResponse("choices saved")
+
+@csrf_exempt
+def editPoll(request):
+    print('editpoll')
+    body = json.loads(request.body)['body']
+    pollId = body['pollId']
+    poll = Poll.objects.get(pollId=pollId)
+    print(body)
+    for key in body.keys():
+        if (key == "newOption"):
+            newOption = Option.objects.create(text=body[key])
+            newOption.save()
+        elif key=="name":
+            poll.name = body[key]
+        elif key == "des":
+            poll.des = body[key]
+    poll.save
+
+    return HttpResponse("editpoll")
+
 
 
 def getPollsOfUser(request):
@@ -194,7 +254,7 @@ def checkMyPoll(request):
 
             for POA in pollOptionAssociations:
                 option = POA.option
-                optionChoice = {"id": option.id, "text": option.text}
+                optionChoice = {"id" : option.OptionId, "text": option.text}
                 print(optionChoice)
 
                 choices = (list(Choice.objects.filter(pollOptionAssociation=POA)))
@@ -202,14 +262,14 @@ def checkMyPoll(request):
                 rejectors = []
                 maybe = []
                 for c in choices:
-                    print(c.user.username)
-                    print(c.answer)
-                    if (c.answer == 1):
-                        selectors.append(c.user.username)
-                    elif (c.answer == 2):
-                        rejectors.append(c.user.username)
-                    elif (c.answer == 3):
-                        maybe.append(c.user.username)
+                        print(c.user.username)
+                        print(c.answer)
+                        if (c.answer ==1):
+                            selectors.append({"name": c.user.username})
+                        elif (c.answer == 2):
+                            rejectors.append({"name": c.user.username})
+                        elif (c.answer == 3):
+                            maybe.append({"name": c.user.username})
 
                 optionChoice["selectors"] = selectors
                 optionChoice["rejectors"] = rejectors
