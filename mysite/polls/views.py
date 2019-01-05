@@ -119,20 +119,6 @@ def addParticipants(request):
         newInvitation = Invitation.objects.create(poll=newPoll, user=targetUser)
         newInvitation.save()
 
-    for optionText in optionsTexts:
-        try:
-            newOption = Option.objects.get(text=optionText)
-            print("we already have the option")
-
-        except Option.DoesNotExist:
-            print("option does not exist")
-            newOption = Option.objects.create(text=optionText)
-            newOption.save()
-            print("created option")
-        newPollOptAss = PollOptionAssociation.objects.create(poll=newPoll, option=newOption)
-        newPollOptAss.save()
-        print("created poll option ass new")
-
 
 def getPollsById(request):
     try:
