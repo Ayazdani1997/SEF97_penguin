@@ -22,7 +22,7 @@ def getOption(choice):
 
 
 def getLoggedInUser():
-    loggedInUser = User.objects.get(username="ahmad")
+    loggedInUser = User.objects.get(username="ali")
     return loggedInUser
 
 
@@ -54,7 +54,7 @@ def login(request):
         return HttpResponseBadRequest("user does not exists")
     else:
         userInfo = {'username': username}
-        response = HttpResponse(json.dump(userInfo))
+        response = HttpResponse(json.dumps(userInfo))
         response.set_cookie('username', username)
         return response
 
@@ -135,9 +135,7 @@ def saveChoiceOfUser(request):
 
 def getPollsOfUser(request):
     user = getLoggedInUser()
-    response = {}
-    response['createdPolls'] = getPollsOwnByUser(user)
-    response["invitedPolls"] = getInvitedPollsByUser(user)
+    response = {'createdPolls': getPollsOwnByUser(user), "invitedPolls": getInvitedPollsByUser(user)}
 
     print(response)
     jsonResponse = json.dumps(response)

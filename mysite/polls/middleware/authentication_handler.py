@@ -1,6 +1,8 @@
 import re
 
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, HttpResponseBadRequest
+
+from polls.models import User
 
 
 class AuthenticationMiddleware:
@@ -18,6 +20,10 @@ class AuthenticationMiddleware:
                 request.path.lstrip('/') in self.login_url):
             try:
                 username = request.COOKIES['username']
+                user = User.objects.get(username=username)
+                request.user = user
             except KeyError:
                 return HttpResponseForbidden("forbidden page")
+            except User.DoesNotExist:
+                return HttpResponseBadRequest("such user not found")
         return None
