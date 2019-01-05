@@ -45,6 +45,16 @@ def getInvitedPollsByUser(user):
         return []
 
 
+def isInvitedToPollOrOwner(user, poll):
+    try:
+        invitation = Invitation.objects.get(user=user, poll=poll)
+        return True
+    except Invitation.DoesNotExist:
+        if user == poll.owner:
+            return True
+        return False
+
+
 # Create your views here.
 def login(request):
     try:
@@ -224,6 +234,8 @@ def getCommentsOfOption(request):
         return HttpResponseBadRequest("no poll or option identified")
     option = Option.objects.get(text=optionText)
     poll = Poll.objects.get(pollId=pollId)
+    if not isInvitedToPollOrOwner(request.loggedInUser, poll):
+        return HttpResponseForbidden('you are not invited to this poll')
     pollOptionAssociation = PollOptionAssociation.objects.get(poll=poll, option=option)
     comments = Comment.objects.filter(pollOptionAssociation=pollOptionAssociation).values_list('comment_text',
                                                                                                'owner__username')
@@ -241,6 +253,8 @@ def saveCommentOfOption(request):
         return HttpResponseBadRequest("no poll or option identified, plus, comment must have a text")
     option = Option.objects.get(text=optionText)
     poll = Poll.objects.get(pollId=pollId)
+    if not isInvitedToPollOrOwner(request.loggedInUser, poll):
+        return HttpResponseForbidden('you are not invited to this poll')
     pollOptionAssociation = PollOptionAssociation.objects.get(poll=poll, option=option)
     Comment.objects.create(pollOptionAssociation=pollOptionAssociation, comment_text=comment_text,
                            owner=request.loggedInUser)
