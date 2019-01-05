@@ -24,7 +24,6 @@ def getOption(choice):
     return choice.pollOptionAssociation.option.text
 
 
-
 def getLoggedInUser():
     loggedInUser = User.objects.get(username="ali")
     return loggedInUser
@@ -32,7 +31,7 @@ def getLoggedInUser():
 
 def getPollsOwnByUser(user):
     try:
-        return [{"name":p.name, "description": p.des, "id": p.pollId} for p in list(Poll.objects.filter(owner=user))]
+        return [{"name": p.name, "description": p.des, "id": p.pollId} for p in list(Poll.objects.filter(owner=user))]
     except Poll.DoesNotExist:
         return []
 
@@ -52,12 +51,12 @@ def login(request):
         print("we got a login request")
         username = request.GET['username']
         email = request.GET['email']
-        print ("before DB")
+        print("before DB")
         loggedInUser = User.objects.get(username=username, email=email)
     except MultiValueDictKeyError:
         return HttpResponseBadRequest("no or more than one user specified on login request")
     except User.DoesNotExist:
-        print ("User does not exist exception in login")
+        print("User does not exist exception in login")
         return HttpResponseNotFound("the user does not exists in system")
     except KeyError:
         print("arg not provided")
@@ -65,7 +64,7 @@ def login(request):
         loggedInUser = {"username": loggedInUser.username, "email": loggedInUser.email}
         return HttpResponse(json.dumps(loggedInUser))
     else:
-        userInfo = {'username': username, "email" : email}
+        userInfo = {'username': username, "email": email}
         response = HttpResponse(json.dumps(userInfo))
         response.set_cookie('username', username)
         return response
@@ -136,8 +135,8 @@ def saveChoiceOfUser(request):
         poll = Poll.objects.get(pollId=pollId)
         user = request.loggedInUser
         for choice in choices:
-            print (choice['id'])
-            print (choice['choice'])
+            print(choice['id'])
+            print(choice['choice'])
             pollOptionAssociation = PollOptionAssociation.objects.get(id=choice['id'])
             Choice.objects.create(user=user, pollOptionAssociation=pollOptionAssociation)
             Choice.save()
@@ -215,6 +214,37 @@ def checkMyPoll(request):
             return HttpResponse("Choice doesnt exist")
         except User.DoesNotExist:
             return HttpResponseServerError("internal server error")
+
+
+def getCommentsOfOption(request):
+    try:
+        pollId = request.GET['pollId']
+        optionText = request.GET['optionText']
+    except KeyError:
+        return HttpResponseBadRequest("no poll or option identified")
+    option = Option.objects.get(text=optionText)
+    poll = Poll.objects.get(pollId=pollId)
+    pollOptionAssociation = PollOptionAssociation.objects.get(poll=poll, option=option)
+    comments = Comment.objects.filter(pollOptionAssociation=pollOptionAssociation).values_list('comment_text',
+                                                                                               'owner__username')
+    response_data = {'comments': [{'text': comment[0], 'user': comment[1]} for comment in comments]}
+    response = HttpResponse(json.dumps(response_data))
+    return response
+
+
+def saveCommentOfOption(request):
+    try:
+        pollId = request.GET['pollId']
+        optionText = request.GET['optionText']
+        comment_text = request.GET['comment_text']
+    except KeyError:
+        return HttpResponseBadRequest("no poll or option identified, plus, comment must have a text")
+    option = Option.objects.get(text=optionText)
+    poll = Poll.objects.get(pollId=pollId)
+    pollOptionAssociation = PollOptionAssociation.objects.get(poll=poll, option=option)
+    Comment.objects.create(pollOptionAssociation=pollOptionAssociation, comment_text=comment_text,
+                           owner=request.loggedInUser)
+    return HttpResponse()
 
 
 def emailTest(request):
