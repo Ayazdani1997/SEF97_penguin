@@ -2,6 +2,8 @@ from django.db.models.query import EmptyResultSet
 from django.http import HttpResponse, HttpResponseServerError
 from django.core.mail import send_mail
 from .models import *
+from django.views.decorators.csrf import csrf_exempt
+
 import json
 
 
@@ -121,10 +123,19 @@ def getOptionsOfPoll(request):
         return HttpResponse(option)
 
 
+@csrf_exempt
 def saveChoiceOfUser(request):
+    print("saveChoiceOfUser")
     global optionText
     try:
-        pollId = request.GET['pollId']
+        body = json.loads(request.body)['body']
+        print ("getting pollId")
+        pollId = body["pollId"]
+        print(pollId)
+        choices = body['choices']
+        print("saveChoiceOfUser (vote)")
+        print(pollId)
+        print(choices)
         optionText = request.GET['optionText']
         poll = Poll.objects.get(pollId=pollId)
         option = Option.objects.get(text=optionText)
