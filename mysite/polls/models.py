@@ -1,24 +1,46 @@
-import datetime
 from django.db import models
-from django.utils import timezone
 
 
-class Question(models.Model):
-    question_text = models.CharField(max_length=200)
-    pub_date = models.DateTimeField('date published')
+# Create your models here.
 
-    def __str__(self):
-        return self.question_text
+class User(models.Model):
+    username = models.CharField(max_length=200)
+    uid = models.AutoField(primary_key=True)
+    email = models.EmailField(max_length=200)
 
-    def was_published_recently(self):
-        now = timezone.now()
-        return now - datetime.timedelta(days=1) <= self.pub_date <= now
+
+class Poll(models.Model):
+    pollId = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=200)
+    des = models.CharField(max_length=200, default=None)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
+    status = models.IntegerField(default=0)
+
+
+class Option(models.Model):
+    text = models.CharField(max_length=200)
+    OptionId = models.AutoField(primary_key=True)
+
+
+class PollOptionAssociation(models.Model):
+    option = models.ForeignKey(Option, on_delete=models.CASCADE)
+    poll = models.ForeignKey(Poll, on_delete=models.CASCADE)
 
 
 class Choice(models.Model):
-    question = models.ForeignKey(Question, on_delete=models.CASCADE)
-    choice_text = models.CharField(max_length=200)
-    votes = models.IntegerField(default=0)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    pollOptionAssociation = models.ForeignKey(PollOptionAssociation, on_delete=models.CASCADE, null=False)
+    answer = models.IntegerField(default=0)  # enum - choices
 
-    def __str__(self):
-        return self.choice_text
+
+class Invitation(models.Model):
+    poll = models.ForeignKey(Poll, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+
+class Comment(models.Model):
+    commentId = models.AutoField(primary_key=True)
+    comment_text = models.CharField(max_length=200, default=None)
+    pollOptionAssociation = models.ForeignKey(PollOptionAssociation, on_delete=models.CASCADE, null=False)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, null=False)
+

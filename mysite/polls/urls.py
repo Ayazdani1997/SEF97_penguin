@@ -1,12 +1,16 @@
 from django.urls import path
 from . import views
 
-app_name = 'polls'
 urlpatterns = [
-
-        path('', views.IndexView.as_view(), name='index'),
-        path('<int:pk>/', views.DetailView.as_view(), name='detail'),
-        path('<int:pk>/results/', views.ResultsView.as_view(), name='results'),
-        path('<int:question_id>/vote/', views.vote, name='vote'),
-
+    path('login', views.login, name='login'),
+    path('createPoll', views.createNewPoll, name='createNewPoll'),
+    path('getPoll', views.getPollsById, name='getPollsById'),
+    path('getOptions', views.getOptionsOfPoll, name='getOptionsOfPoll'),
+    path('vote', views.saveChoiceOfUser, name='saveChoiceOfUser'),
+    path('polls', views.getPollsOfUser, name='getPollsOfUser'),
+    path('emailTest', views.emailTest, name='emailTest'),
+    path('finalizePoll', views.finalizePoll, name='finalizePoll'),
+    path('checkPoll', views.checkMyPoll, name='checkMyPoll'),
+    path('comments/', views.getCommentsOfOption, name='getCommentsOfOption'),
+    path('saveComment/', views.saveCommentOfOption)
 ]
