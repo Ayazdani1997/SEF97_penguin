@@ -48,9 +48,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-
+    'polls.middleware.authentication_handler.AuthenticationMiddleware',
 ]
-# 'polls.middleware.authentication_handler.AuthenticationMiddleware',
 
 CSRF_COOKIE_SECURE = False
 CORS_ALLOW_CREDENTIALS = True
