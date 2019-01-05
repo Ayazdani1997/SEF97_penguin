@@ -20,8 +20,8 @@ class AuthenticationMiddleware:
                 request.path.lstrip('/') in self.login_url):
             try:
                 username = request.COOKIES['username']
-                user = User.objects.get(username=username)
-                request.user = username
+                loggedInUser = User.objects.get(username=username)
+                request.loggedInUser = loggedInUser
             except KeyError:
                 return HttpResponseForbidden("forbidden page")
             except User.DoesNotExist:

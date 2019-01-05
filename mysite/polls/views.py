@@ -21,7 +21,7 @@ def getOption(choice):
     return choice.pollOptionAssociation.option.text
 
 
-def getLoggedInUser( username ):
+def getLoggedInUser(username):
     loggedInUser = User.objects.get(username=username)
     return loggedInUser
 
@@ -60,10 +60,7 @@ def login(request):
 
 
 def createNewPoll(request):
-    try:
-        user = getLoggedInUser(request.GET['username'])
-    except KeyError:
-        return HttpResponseForbidden("there is no user to do anything")
+    user = request.loggedInUser
     try:
         pollName = request.GET['name']
         pollDes = request.GET['des']
@@ -121,10 +118,7 @@ def saveChoiceOfUser(request):
         optionText = request.GET['optionText']
         poll = Poll.objects.get(pollId=pollId)
         option = Option.objects.get(text=optionText)
-        try:
-            user = getLoggedInUser(request.GET['username'])
-        except KeyError:
-            return HttpResponseForbidden("there is no user to do anything")
+        user = request.loggedInUser
         Choice.objects.create(user=user, option=option)
     except Poll.DoesNotExist:
         return HttpResponse("requested poll does not exist in system!")
@@ -139,10 +133,7 @@ def saveChoiceOfUser(request):
 
 
 def getPollsOfUser(request):
-    try:
-        user = getLoggedInUser(request.GET['username'])
-    except KeyError:
-        return HttpResponseForbidden("there is no user to do anything")
+    user = request.loggedInUser
     response = {'createdPolls': getPollsOwnByUser(user), "invitedPolls": getInvitedPollsByUser(user)}
 
     print(response)
@@ -151,10 +142,7 @@ def getPollsOfUser(request):
 
 
 def finalizePoll(request):
-    try:
-        user = getLoggedInUser(request.GET['username'])
-    except KeyError:
-        return HttpResponseForbidden("there is no user to do anything")
+    user = request.loggedInUser
     targetPoll = Poll.objects.get(pollId=request.GET['pollId'])
     if user != targetPoll.owner:
         return HttpResponse("you are not authorized to finalize this poll")
@@ -165,10 +153,7 @@ def finalizePoll(request):
 
 
 def checkMyPoll(request):
-    try:
-        user = getLoggedInUser(request.GET['username'])
-    except KeyError:
-        return HttpResponseForbidden("there is no user to do anything")
+    user = request.loggedInUser
     targetPoll = Poll.objects.get(pollId=request.GET['pollId'])
     if user != targetPoll.owner:
         return HttpResponse("you are not authorized to check the status of this poll")
@@ -212,9 +197,6 @@ def checkMyPoll(request):
 
 
 def emailTest(request):
-    try:
-        user = getLoggedInUser(request.GET['username'])
-    except KeyError:
-        return HttpResponseForbidden("there is no user to do anything")
+    user = request.loggedInUser
     notifyUser(user)
     return HttpResponse("successfully sent email to %s" % user.email)
