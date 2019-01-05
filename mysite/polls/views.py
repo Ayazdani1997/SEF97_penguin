@@ -132,7 +132,6 @@ def getOptionsOfPoll(request):
 @csrf_exempt
 def saveChoiceOfUser(request):
     print("saveChoiceOfUser")
-    global optionText
     try:
         body = json.loads(request.body)['body']
         pollId = body["pollId"]
@@ -142,17 +141,18 @@ def saveChoiceOfUser(request):
         poll = Poll.objects.get(pollId=pollId)
         user = getLoggedInUser()
         for choice in choices:
-            print (choice['id'])
-            print (choice['choice'])
+            print(choice['id'])
+            print(choice['answer'])
             pollOptionAssociation = PollOptionAssociation.objects.get(id=choice['id'])
-            Choice.objects.create(user=user, pollOptionAssociation=pollOptionAssociation)
-            Choice.save()
+            newChoice = Choice.objects.create(user=user, pollOptionAssociation=pollOptionAssociation,
+                                              answer=choice['answer'])
+            newChoice.save()
     except PollOptionAssociation.DoesNotExist:
         return HttpResponse("requested polloptassociation does not exist in system!")
     except Option.DoesNotExist:
-        return HttpResponse("option %s does not exist in this poll" % optionText)
+        return HttpResponse("option %s does not exist in this poll")
     except PollOptionAssociation.DoesNotExist:
-        return HttpResponse("option %s does not exist in this poll" % optionText)
+        return HttpResponse("option %s does not exist in this poll")
     except KeyError:
         return HttpResponseServerError("internal server error")
     else:
