@@ -19,7 +19,8 @@ class Poll(models.Model):
 
 class Option(models.Model):
     text = models.CharField(max_length=200)
-    date = models.DateTimeField(auto_now=True)
+    start = models.DateTimeField(auto_now=True)
+    end = models.DateTimeField(auto_now=True)
     OptionId = models.AutoField(primary_key=True)
 
 class PollOptionAssociation(models.Model):
