@@ -19,7 +19,7 @@ class Poll(models.Model):
 
 class Option(models.Model):
     text = models.CharField(max_length=200)
-
+    OptionId = models.AutoField(primary_key=True)
 
 class PollOptionAssociation(models.Model):
     option = models.ForeignKey(Option, on_delete=models.CASCADE)

@@ -45,12 +45,11 @@ def getInvitedPollsByUser(user):
 # Create your views here.
 def login(request):
     try:
-        try:
-            username = request.GET['username']
-            email = request.GET['email']
-        except MultiValueDictKeyError:
-            return HttpResponseBadRequest("no or more than one user specified on login request" )
+        username = request.GET['username']
+        email = request.GET['email']
         loggedInUser = User.objects.get(username=username, email=email)
+    except MultiValueDictKeyError:
+        return HttpResponseBadRequest("no or more than one user specified on login request")
     except User.DoesNotExist:
         return HttpResponseBadRequest("user does not exists")
     else:
