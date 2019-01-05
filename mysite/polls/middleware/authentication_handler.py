@@ -10,7 +10,7 @@ class AuthenticationMiddleware:
         self.get_response = get_response
         self.disallowed_urls = [re.compile(r'^polls/(.)+')]
         self.login_api = 'login'
-        self.context = 'polls'
+        self.context = 'polls/'
 
     def __call__(self, request):
         response = self.get_response(request)
@@ -18,7 +18,7 @@ class AuthenticationMiddleware:
 
     def process_view(self, request, view_func, view_args, view_kwargs):
         if any(url.match(request.path.lstrip('/')) for url in self.disallowed_urls) and not (
-                request.path.lstrip('/') in self.context + self.login_api):
+                self.context + self.login_api in request.path.lstrip('/')):
             try:
                 username = request.COOKIES['username']
                 loggedInUser = User.objects.get(username=username)
