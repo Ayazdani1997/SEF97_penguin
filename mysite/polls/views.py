@@ -158,6 +158,26 @@ def saveChoiceOfUser(request):
     else:
         return HttpResponse("choices saved")
 
+@csrf_exempt
+def editPoll(request):
+    print('editpoll')
+    body = json.loads(request.body)['body']
+    pollId = body['pollId']
+    poll = Poll.objects.get(pollId=pollId)
+    print(body)
+    for key in body.keys():
+        if (key == "newOption"):
+            newOption = Option.objects.create(text=body[key])
+            newOption.save()
+        elif key=="name":
+            poll.name = body[key]
+        elif key == "des":
+            poll.des = body[key]
+    poll.save
+
+    return HttpResponse("editpoll")
+
+
 
 def getPollsOfUser(request):
     print("getPollsOfUser")
