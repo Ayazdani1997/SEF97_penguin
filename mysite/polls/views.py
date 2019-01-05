@@ -134,7 +134,7 @@ def saveChoiceOfUser(request):
         choices = body['choices']
         print(choices)
         poll = Poll.objects.get(pollId=pollId)
-        user = getLoggedInUser()
+        user = request.loggedInUser
         for choice in choices:
             print (choice['id'])
             print (choice['choice'])
