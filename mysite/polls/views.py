@@ -148,8 +148,8 @@ def saveChoiceOfUser(request):
             print(choice['id'])
             print(choice['choice'])
             pollOptionAssociation = PollOptionAssociation.objects.get(id=choice['id'])
-            Choice.objects.create(user=user, pollOptionAssociation=pollOptionAssociation)
-            Choice.save()
+            new_choice = Choice.objects.create(user=user, pollOptionAssociation=pollOptionAssociation)
+            new_choice.save()
     except PollOptionAssociation.DoesNotExist:
         return HttpResponse("requested polloptassociation does not exist in system!")
     except Option.DoesNotExist:
@@ -259,9 +259,9 @@ def saveCommentOfOption(request):
     if not isInvitedToPollOrOwner(request.loggedInUser, poll):
         return HttpResponseForbidden('you are not invited to this poll')
     pollOptionAssociation = PollOptionAssociation.objects.get(poll=poll, option=option)
-    Comment.objects.create(pollOptionAssociation=pollOptionAssociation, comment_text=comment_text,
+    comment = Comment.objects.create(pollOptionAssociation=pollOptionAssociation, comment_text=comment_text,
                            owner=request.loggedInUser)
-    Comment.save()
+    comment.save()
     return HttpResponse()
 
 
