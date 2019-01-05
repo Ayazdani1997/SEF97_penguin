@@ -229,10 +229,10 @@ def checkMyPoll(request):
 def getCommentsOfOption(request):
     try:
         pollId = request.GET['pollId']
-        optionText = request.GET['optionText']
+        optionId = request.GET['optionId']
     except KeyError:
         return HttpResponseBadRequest("no poll or option identified")
-    option = Option.objects.get(text=optionText)
+    option = Option.objects.get(optionId=optionId)
     poll = Poll.objects.get(pollId=pollId)
     if not isInvitedToPollOrOwner(request.loggedInUser, poll):
         return HttpResponseForbidden('you are not invited to this poll')
@@ -247,17 +247,18 @@ def getCommentsOfOption(request):
 def saveCommentOfOption(request):
     try:
         pollId = request.GET['pollId']
-        optionText = request.GET['optionText']
+        optionId = request.GET['optionId']
         comment_text = request.GET['comment_text']
     except KeyError:
         return HttpResponseBadRequest("no poll or option identified, plus, comment must have a text")
-    option = Option.objects.get(text=optionText)
+    option = Option.objects.get(text=optionId)
     poll = Poll.objects.get(pollId=pollId)
     if not isInvitedToPollOrOwner(request.loggedInUser, poll):
         return HttpResponseForbidden('you are not invited to this poll')
     pollOptionAssociation = PollOptionAssociation.objects.get(poll=poll, option=option)
     Comment.objects.create(pollOptionAssociation=pollOptionAssociation, comment_text=comment_text,
                            owner=request.loggedInUser)
+    Comment.save()
     return HttpResponse()
 
 
