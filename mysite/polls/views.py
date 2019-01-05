@@ -248,7 +248,6 @@ def getCommentsOfOption(request):
 def saveCommentOfOption(request):
     try:
         body = json.loads(request.body)
-        print("####this is save comment")
         pollId = body['pollId']
         optionId = body['optionId']
         comment_text = body['comment_text']
