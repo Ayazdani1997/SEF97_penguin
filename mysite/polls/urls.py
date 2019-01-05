@@ -11,7 +11,7 @@ urlpatterns = [
     path('emailTest', views.emailTest, name='emailTest'),
     path('finalizePoll', views.finalizePoll, name='finalizePoll'),
     path('comments/', views.getCommentsOfOption, name='getCommentsOfOption'),
-    path('saveComment/', views.saveCommentOfOption)
+    path('saveComment/', views.saveCommentOfOption),
     path('result', views.checkMyPoll, name='checkMyPoll'),
     path('edit', views.editPoll, name='editPoll'),
     path('checkOverlap', views.checkOverlap, name='checkOverlap'),
