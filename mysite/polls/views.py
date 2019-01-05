@@ -114,13 +114,19 @@ def getOptionsOfPoll(request):
     try:
         pollId = request.GET['pollId']
         requestedPoll = Poll.objects.get(pollId=pollId)
-        option = PollOptionAssociation.objects.get(poll=requestedPoll).option
+        option_associations = PollOptionAssociation.objects.filter(poll=requestedPoll)
+        response = []
+        for option_association in option_associations:
+            option = option_association.option
+            new_response = {"id": option.OptionId, "text": option.text}
+            response.append(new_response)
     except Poll.DoesNotExist:
         return HttpResponse("requested poll does not exist in system!")
     except EmptyResultSet:
         return HttpResponse("this poll does not have any options!")
     else:
-        return HttpResponse(option)
+
+        return HttpResponse(json.dumps(response))
 
 
 @csrf_exempt
