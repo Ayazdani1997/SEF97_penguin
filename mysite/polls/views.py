@@ -1,6 +1,7 @@
 from django.db.models.query import EmptyResultSet
 from django.http import HttpResponse, HttpResponseServerError
 from django.core.mail import send_mail
+import datetime
 from .models import *
 from django.views.decorators.csrf import csrf_exempt
 
@@ -69,31 +70,46 @@ def login(request):
         # return HttpResponse("the DB has fucked us")
 
 
-
+@csrf_exempt
 def createNewPoll(request):
     user = getLoggedInUser()
     try:
-        pollName = request.GET['name']
-        pollDes = request.GET['des']
+        body = json.loads(request.body)['body']
+        pollName = body['name']
+        pollDes = body['description']
         newPoll = Poll.objects.create(name=pollName, des=pollDes, owner=user)
-        optionsTexts = request.GET['options']
-        for optionText in optionsTexts:
-            try:
-                newOption = Option.objects.get(text=optionText)
-            except Option.DoesNotExist:
-                newOption = Option.objects.create(text=optionsTexts)
-            PollOptionAssociation.objects.create(poll=newPoll, option=newOption)
-        invitedUserIds= request.GET['invitedList']
-        for userId in invitedUserIds:
-            targetUser = User.objects.get(uid=userId)
-            notifyUser(targetUser)
-            Invitation.objects.create(poll=newPoll, user=targetUser)
+        newPoll.save()
 
+        # invitedUserIds= request.GET['invitedList']
+        # for userId in invitedUserIds:
+        #     targetUser = User.objects.get(uid=userId)
+        #     notifyUser(targetUser)
+        #     Invitation.objects.create(poll=newPoll, user=targetUser)
 
     except KeyError:
         return HttpResponseServerError("internal server error")
     else:
-        return HttpResponse("poll %s created successfully" % Poll.objects.get(name=pollName).des)
+        return HttpResponse(json.dumps({'pollId': newPoll.pollId}))
+
+@csrf_exempt
+def addOption(request):
+    body = json.loads(request.body)['body']
+    print(body)
+    newPoll = Poll.objects.get(pollId=body['id'])
+    optionsTexts = body['options']
+    for optionText in optionsTexts:
+        try:
+            newOption = Option.objects.get(text=optionText)
+            print("we already have the option")
+
+        except Option.DoesNotExist:
+            print("option does not exist")
+            newOption = Option.objects.create(text=optionText)
+            newOption.save()
+            print("created option")
+        newPollOptAss = PollOptionAssociation.objects.create(poll=newPoll, option=newOption)
+        newPollOptAss.save()
+        print("created poll option ass new")
 
 
 def getPollsById(request):
@@ -108,6 +124,16 @@ def getPollsById(request):
         data['pollId'] = requestedPoll.pollId
         jsonPoll = json.dumps(data)
         return HttpResponse(jsonPoll)
+
+
+def checkOverlap(request):
+    dateTime = request.GET['dateTime']
+    print (dateTime)
+    dateTime = datetime.datetime.strptime(dateTime, "%Y-%m-%d %H:%M")
+    print(dateTime)
+
+    user = getLoggedInUser()
+    return HttpResponse("checkoverlap")
 
 
 def getOptionsOfPoll(request):
