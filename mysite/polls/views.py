@@ -80,11 +80,6 @@ def createNewPoll(request):
         newPoll = Poll.objects.create(name=pollName, des=pollDes, owner=user)
         newPoll.save()
 
-        # invitedUserIds= request.GET['invitedList']
-        # for userId in invitedUserIds:
-        #     targetUser = User.objects.get(uid=userId)
-        #     notifyUser(targetUser)
-        #     Invitation.objects.create(poll=newPoll, user=targetUser)
 
     except KeyError:
         return HttpResponseServerError("internal server error")
@@ -97,6 +92,33 @@ def addOption(request):
     print(body)
     newPoll = Poll.objects.get(pollId=body['id'])
     optionsTexts = body['options']
+    for optionText in optionsTexts:
+        try:
+            newOption = Option.objects.get(text=optionText)
+            print("we already have the option")
+
+        except Option.DoesNotExist:
+            print("option does not exist")
+            newOption = Option.objects.create(text=optionText)
+            newOption.save()
+            print("created option")
+        newPollOptAss = PollOptionAssociation.objects.create(poll=newPoll, option=newOption)
+        newPollOptAss.save()
+        print("created poll option ass new")
+
+@csrf_exempt
+def addParticipants(request):
+    body = json.loads(request.body)['body']
+    print(body)
+    newPoll = Poll.objects.get(pollId=body['id'])
+    invitedUserEmails= body['participants']
+    for email in invitedUserEmails:
+        targetUser = User.objects.get(email=email)
+        print(targetUser)
+        notifyUser(targetUser)
+        newInvitation = Invitation.objects.create(poll=newPoll, user=targetUser)
+        newInvitation.save()
+
     for optionText in optionsTexts:
         try:
             newOption = Option.objects.get(text=optionText)
