@@ -178,7 +178,7 @@ def finalizePoll(request):
 
 def checkMyPoll(request):
     user = getLoggedInUser()
-    targetPoll = Poll.objects.get(pollId=request.GET['pollId'])
+    targetPoll = Poll.objects.get(pollId=request.GET['id'])
     if user != targetPoll.owner:
         return HttpResponse("you are not authorized to check the status of this poll")
     else:
@@ -188,7 +188,7 @@ def checkMyPoll(request):
 
             for POA in pollOptionAssociations:
                 option = POA.option
-                optionChoice = {"id" : option.id, "text": option.text}
+                optionChoice = {"id" : option.OptionId, "text": option.text}
                 print(optionChoice)
 
                 choices = (list(Choice.objects.filter(pollOptionAssociation=POA)))
