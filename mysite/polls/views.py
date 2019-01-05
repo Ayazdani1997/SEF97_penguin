@@ -21,7 +21,7 @@ def getOption(choice):
 
 
 def getLoggedInUser():
-    loggedInUser = User.objects.get(username="ahmad")
+    loggedInUser = User.objects.get(username="ali")
     return loggedInUser
 
 
@@ -51,12 +51,19 @@ def login(request):
         loggedInUser = User.objects.get(username=username, email=email)
         print("after DB")
     except User.DoesNotExist:
-        # return HttpResponse("the DB has fucked us")
-        print ("exception in login")
+        print ("User does not exist exception in login")
         return HttpResponse(loggedInUser)
+    except KeyError:
+        print("arg not provided")
+        loggedInUser = getLoggedInUser()
+        loggedInUser = {"username": loggedInUser.username, "email": loggedInUser.email}
+        return HttpResponse(json.dumps(loggedInUser))
     else:
         print("okay in logins")
-        return HttpResponse(loggedInUser)
+        response = {"username" : loggedInUser.username , "email": loggedInUser.email}
+        json_respone = json.dumps(response)
+        print(json_respone)
+        return HttpResponse(json_respone)
         # return HttpResponse("the DB has fucked us")
 
 
@@ -136,6 +143,7 @@ def saveChoiceOfUser(request):
 
 
 def getPollsOfUser(request):
+    print("getPollsOfUser")
     user = getLoggedInUser()
     response = {}
     response['createdPolls'] = getPollsOwnByUser(user)
