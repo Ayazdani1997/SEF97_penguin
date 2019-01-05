@@ -187,8 +187,12 @@ def saveChoiceOfUser(request):
             print(choice['id'])
             print(choice['answer'])
             pollOptionAssociation = PollOptionAssociation.objects.get(id=choice['id'])
-            newChoice = Choice.objects.create(user=user, pollOptionAssociation=pollOptionAssociation,
-                                              answer=choice['answer'])
+            try:
+                oldChoice = Choice.objects.get(user= user , pollOptionAssociation=pollOptionAssociation, answer=choice['answer'])
+                newChoice = Choice.objects.create(user=user, pollOptionAssociation=pollOptionAssociation,
+                                                  answer=choice['answer'])
+            except Choice.DoesNotExist:
+                continue
             newChoice.save()
     except PollOptionAssociation.DoesNotExist:
         return HttpResponse("requested polloptassociation does not exist in system!")
@@ -216,7 +220,7 @@ def editPoll(request):
             poll.name = body[key]
         elif key == "des":
             poll.des = body[key]
-    poll.save
+    poll.save()
 
     return HttpResponse("editpoll")
 
