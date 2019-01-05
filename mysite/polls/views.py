@@ -129,20 +129,20 @@ def saveChoiceOfUser(request):
     global optionText
     try:
         body = json.loads(request.body)['body']
-        print ("getting pollId")
         pollId = body["pollId"]
         print(pollId)
         choices = body['choices']
-        print("saveChoiceOfUser (vote)")
-        print(pollId)
         print(choices)
-        optionText = request.GET['optionText']
         poll = Poll.objects.get(pollId=pollId)
-        option = Option.objects.get(text=optionText)
         user = getLoggedInUser()
-        Choice.objects.create(user=user, option=option)
-    except Poll.DoesNotExist:
-        return HttpResponse("requested poll does not exist in system!")
+        for choice in choices:
+            print (choice['id'])
+            print (choice['choice'])
+            pollOptionAssociation = PollOptionAssociation.objects.get(id=choice['id'])
+            Choice.objects.create(user=user, pollOptionAssociation=pollOptionAssociation)
+            Choice.save()
+    except PollOptionAssociation.DoesNotExist:
+        return HttpResponse("requested polloptassociation does not exist in system!")
     except Option.DoesNotExist:
         return HttpResponse("option %s does not exist in this poll" % optionText)
     except PollOptionAssociation.DoesNotExist:
