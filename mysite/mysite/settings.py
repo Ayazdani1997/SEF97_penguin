@@ -74,25 +74,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'mysite.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/2.1/ref/settings/#databases
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'bewvzwjh',
-#         'USER': 'bewvzwjh',
-#         'PASSWORD': 's-0mefwaHvF9N97o4-WDwxHsYs5MYOeH',
-#         'HOST': 'manny.db.elephantsql.com',
-#         'PORT': '5432',
-#     },
-#     'TEST': {
-#             'ENGINE': 'django.db.backends.sqlite3',
-#             'NAME': os.path.join( BASE_DIR, 'testDB.sqlite3' ),
-#     },
-# }
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.

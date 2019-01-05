@@ -21,11 +21,6 @@ def getOption(choice):
     return choice.pollOptionAssociation.option.text
 
 
-def getLoggedInUser(username):
-    loggedInUser = User.objects.get(username=username)
-    return loggedInUser
-
-
 def getPollsOwnByUser(user):
     try:
         return [{"name": p.name, "description": p.des, "id": p.pollId} for p in list(Poll.objects.filter(owner=user))]

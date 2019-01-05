@@ -21,6 +21,7 @@ class Option(models.Model):
     text = models.CharField(max_length=200)
     OptionId = models.AutoField(primary_key=True)
 
+
 class PollOptionAssociation(models.Model):
     option = models.ForeignKey(Option, on_delete=models.CASCADE)
     poll = models.ForeignKey(Poll, on_delete=models.CASCADE)
@@ -28,10 +29,18 @@ class PollOptionAssociation(models.Model):
 
 class Choice(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    pollOptionAssociation = models.ForeignKey(PollOptionAssociation, on_delete=models.CASCADE, null=True)
-    answer = models.IntegerField(default=0) #enum - choices
+    pollOptionAssociation = models.ForeignKey(PollOptionAssociation, on_delete=models.CASCADE, null=False)
+    answer = models.IntegerField(default=0)  # enum - choices
 
 
 class Invitation(models.Model):
     poll = models.ForeignKey(Poll, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+
+class Comment(models.Model):
+    commentId = models.AutoField(primary_key=True)
+    comment_text = models.CharField(max_length=200, default=None)
+    pollOptionAssociation = models.ForeignKey(PollOptionAssociation, on_delete=models.CASCADE, null=False)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, null=False)
+
