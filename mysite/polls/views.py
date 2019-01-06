@@ -198,9 +198,10 @@ def saveChoiceOfUser(request):
         poll = Poll.objects.get(pollId=pollId)
         user = request.loggedInUser
         for choice in choices:
-            print(choice['id'])
+            print(choice['optionId'])
             print(choice['answer'])
-            pollOptionAssociation = PollOptionAssociation.objects.get(id=choice['id'])
+            targetOption = Option.objects.get(OptionId=choice['optionId'])
+            pollOptionAssociation = PollOptionAssociation.objects.get(poll=poll, option=targetOption)
             try:
                 newChoice = Choice.objects.get(user= user , pollOptionAssociation=pollOptionAssociation, answer=choice['answer'])
             except Choice.DoesNotExist:
