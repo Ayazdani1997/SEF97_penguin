@@ -232,7 +232,8 @@ def checkOverlap(user):
         if pollStatus:
             finalizedOptions.append({"option": Option.objects.get(OptionId=pollStatus), "choice": choice})
     options = [{"option": choice.pollOptionAssociation.option, "choice": choice} for choice in choices]
-
+    print(finalizedOptions)
+    print(options)
     for elem1 in options:
         overlap = False
         for elem2 in finalizedOptions:
