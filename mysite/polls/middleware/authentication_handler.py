@@ -20,10 +20,16 @@ class AuthenticationMiddleware:
         if any(url.match(request.path.lstrip('/')) for url in self.disallowed_urls) and not (
                 self.context + self.login_api in request.path.lstrip('/')):
             try:
-                username = request.COOKIES['username']
-                loggedInUser = User.objects.get(username=username)
+                # print(request.COOKIES)
+                # print(request.GET['header'])
+                # username = request.COOKIES['username']
+                # print("middleware")
+                # print(username)
+                # loggedInUser = User.objects.get(username=username)
+                loggedInUser = User.objects.get(username="ali")
                 request.loggedInUser = loggedInUser
             except KeyError:
+                print("keyerror in middleware")
                 return HttpResponseForbidden("forbidden page")
             except User.DoesNotExist:
                 return HttpResponseBadRequest("such user not found")
