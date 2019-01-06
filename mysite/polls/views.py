@@ -217,7 +217,8 @@ def saveChoiceOfUser(request):
     except KeyError:
         return HttpResponseServerError("internal server error")
     else:
-        return HttpResponse("choices saved")
+        response = checkOverlap(user)
+        return HttpResponse(json.dumps(response))
 
 
 def checkOverlap(user):
@@ -231,10 +232,10 @@ def checkOverlap(user):
             if (elem1["option"].start == elem2["option"].start and elem1!=elem2):
                 overlap = True
         if overlap:
-            print ("overlapDetected")
-            print (elem1["choice"].pollOptionAssociation.poll.name)
-            print(elem2["choice"].pollOptionAssociation.poll.name)
-    print(options)
+            overlapMessage = "overlap detected between" + elem1["choice"].pollOptionAssociation.poll.name + " and " + elem2["choice"].pollOptionAssociation.poll.name
+            print(overlapMessage)
+            return({"overlap":True, "overlapMessage": overlapMessage})
+    return({"overlap":False, "overlapMessage": ""})
 
 
 def checkOverlapTest(request):
