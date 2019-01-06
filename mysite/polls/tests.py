@@ -54,11 +54,13 @@ from .models import *
 
 class RevokePollTest(TestCase):
     def setUp(self):
-        testUser = User.objects.create(username="ali", email="ali@gmail.com")
-        Poll.objects.create(name="Poll1", des="des of poll1", owner=testUser, status=1)
         self.client = Client()
 
-    def test_revoke(self):
+    def test_scenario(self):
+        testUser = User.objects.create(username="ali", email="ali@gmail.com")
+        createdPoll = Poll.objects.create(name="Poll1", des="des of poll1", owner=testUser, status=1)
+        targetPoll = Poll.objects.get(pollId = 1)
+        self.assertEqual(createdPoll, targetPoll)
         print("working around with the tests")
         response = self.client.get(reverse('getPollsOfUser'))
         print (response.status_code)

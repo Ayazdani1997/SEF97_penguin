@@ -23,6 +23,7 @@ def notifyUser(user, message="You have new notification in penguin please check 
     )
 
 
+
 def getOption(choice):
     return choice.pollOptionAssociation.option.text
 
@@ -135,6 +136,19 @@ def getOptionById(request):
 
     return HttpResponse(json.dumps({"text": targetOption.text}))
 
+def createPeriodicMessage(times):
+    print("createPeriodicPoll")
+    msg = ""
+    start = times[0]
+    end = times[1]
+    period = int(times[2])
+    startdate = datetime.datetime.strptime(start, "%Y-%m-%d %H:%M")
+    enddate = datetime.datetime.strptime(end, "%Y-%m-%d %H:%M")
+    while(startdate +datetime.timedelta(days=period) < enddate):
+        msg = msg + startdate.strftime("%Y-%m-%d %H:%M") + "\n"
+        startdate = startdate +datetime.timedelta(days=period)
+
+    return msg
 
 @csrf_exempt
 def addParticipants(request):
@@ -142,10 +156,22 @@ def addParticipants(request):
     print(body)
     newPoll = Poll.objects.get(pollId=body['id'])
     invitedUserEmails= body['participants']
+    isPeriodic = body["periodic"]
+    msg = "you have new poll invitation, please check the penguin website"
+    if isPeriodic:
+        msg = msg+ "\n the poll is periodic!"
+        options = list(PollOptionAssociation.objects.filter(poll=newPoll))
+        for option in options:
+            msg = msg + "\n-----------------\n"
+            times = option.text.split(",")
+            print(times)
+            msg = msg + createPeriodicMessage(times)
+
+    print(msg)
     for email in invitedUserEmails:
         targetUser = User.objects.get(email=email)
         print(targetUser)
-        notifyUser(targetUser)
+        notifyUser(targetUser, msg)
         newInvitation = Invitation.objects.create(poll=newPoll, user=targetUser)
         newInvitation.save()
 
