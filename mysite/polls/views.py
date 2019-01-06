@@ -236,21 +236,25 @@ def getPollsOfUser(request):
     jsonResponse = json.dumps(response)
     return HttpResponse(jsonResponse)
 
-
+@csrf_exempt
 def finalizePoll(request):
     user = request.loggedInUser
-    targetPoll = Poll.objects.get(pollId=request.GET['pollId'])
-    targetOption = Option.objects.get(OptionId=request.GET['optionId'])
+    body = json.loads(request.body)['body']
+    targetPoll = Poll.objects.get(pollId=body['pollId'])
+    targetOption = Option.objects.get(OptionId=body['optionId'])
     if user != targetPoll.owner:
         return HttpResponse("you are not authorized to finalize this poll")
     else:
-        targetPoll.status = request.GET['optionId']
+        targetPoll.status = body['optionId']
         targetPoll.save()
         return HttpResponse(" successfully finialized poll %s" % targetPoll.name)
 
+
+@csrf_exempt
 def revokePoll(request):
     user = request.loggedInUser
-    targetPoll = Poll.objects.get(pollId=request.GET['pollId'])
+    body = json.loads(request.body)['body']
+    targetPoll = Poll.objects.get(pollId=body['pollId'])
     if user != targetPoll.owner:
         return HttpResponse("you are not authorized to revoke this poll")
     else:
@@ -260,6 +264,7 @@ def revokePoll(request):
         for invitation in invitationList:
             notifyUser(invitation.user)
         return HttpResponse(" Poll has been revoked and participants have been notified! %s" % targetPoll.name)
+
 
 
 def checkMyPoll(request):
