@@ -92,6 +92,8 @@ def createNewPoll(request):
         body = json.loads(request.body)['body']
         print(body)
         pollName = body['name']
+        if (body["periodic"]):
+            pollName = "Periodic Poll -- " + pollName
         pollDes = body['description']
         newPoll = Poll.objects.create(name=pollName, des=pollDes, owner=user)
         newPoll.save()
@@ -109,7 +111,11 @@ def addOption(request):
     optionsTexts = body['options']
     for optionText in optionsTexts:
         try:
-            optionDateTime = datetime.datetime.strptime(optionText, "%Y-%m-%d %H:%M")
+            isPeriodic = body["periodic"]
+            startTimeText = optionText
+            if isPeriodic:
+                startTimeText = optionText.split(",")[0]
+            optionDateTime = datetime.datetime.strptime(startTimeText, "%Y-%m-%d %H:%M")
             newOption = Option.objects.get(start=optionDateTime, text=optionText)
             print("we already have the option")
 
@@ -160,8 +166,9 @@ def addParticipants(request):
     msg = "you have new poll invitation, please check the penguin website"
     if isPeriodic:
         msg = msg+ "\n the poll is periodic!"
-        options = list(PollOptionAssociation.objects.filter(poll=newPoll))
-        for option in options:
+        pollOpAsses = list(PollOptionAssociation.objects.filter(poll=newPoll))
+        for pollOpAss in pollOpAsses:
+            option = pollOpAss.option
             msg = msg + "\n-----------------\n"
             times = option.text.split(",")
             print(times)
