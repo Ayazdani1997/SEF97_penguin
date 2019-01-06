@@ -11,7 +11,7 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 
 
-def notifyUser(user, message="You have been invited to a meeting in penguin please check the website for more information"):
+def notifyUser(user, message="You have new notification in penguin please check the website for more information"):
     print("notifyUser")
     print(message)
     send_mail(
