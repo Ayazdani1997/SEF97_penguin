@@ -226,13 +226,15 @@ def checkOverlap(user):
     print("checkOverlap")
     choices = list(Choice.objects.filter(user=user, answer=1))
     print(choices)
-    options = []
+    finalizedOptions = []
     for choice in choices:
-        if choice.pollOptionAssociation.poll.status:
-            options.append({"option": choice.pollOptionAssociation.option, "choice": choice})
+        pollStatus = choice.pollOptionAssociation.poll.status
+        if pollStatus:
+            finalizedOptions.append({"option": Option.objects.get(OptionId=pollStatus), "choice": choice})
+    options = [{"option": choice.pollOptionAssociation.option, "choice": choice} for choice in choices]
     for elem1 in options:
         overlap = False
-        for elem2 in options:
+        for elem2 in finalizedOptions:
             if (elem1["option"].start == elem2["option"].start and elem1!=elem2):
                 overlap = True
         if overlap:
