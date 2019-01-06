@@ -256,7 +256,7 @@ def checkMyPoll(request):
     else:
         try:
             pollOptionAssociations = list(PollOptionAssociation.objects.filter(poll=targetPoll))
-            finalResponse = []
+            optionChoiceList = []
 
             for POA in pollOptionAssociations:
                 option = POA.option
@@ -280,8 +280,8 @@ def checkMyPoll(request):
                 optionChoice["selectors"] = selectors
                 optionChoice["rejectors"] = rejectors
                 optionChoice["maybe"] = maybe
-                finalResponse.append(optionChoice)
-
+                optionChoiceList.append(optionChoice)
+            finalResponse = {"status": targetPoll.status, "optionChoiceList": optionChoiceList}
             jsonResponse = json.dumps(finalResponse)
             return HttpResponse(jsonResponse)
         except PollOptionAssociation.DoesNotExist:
