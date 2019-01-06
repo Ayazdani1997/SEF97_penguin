@@ -17,14 +17,14 @@ class AuthenticationMiddleware:
         return response
 
     def process_view(self, request, view_func, view_args, view_kwargs):
+        print( "hello" )
         if any(url.match(request.path.lstrip('/')) for url in self.disallowed_urls) and not (
                 self.context + self.login_api in request.path.lstrip('/')):
             try:
-                print( request.META )
-                username = request.META[ 'HTTP_USERNAME' ]
-                print("middleware")
-                print(username)
-                loggedInUser = User.objects.get(username=username)
+                print( "hello" )
+                # print( request.META )
+                # username = request.META[ 'username' ]
+                loggedInUser = User.objects.get(username='ahmad')
                 request.loggedInUser = loggedInUser
             except KeyError:
                 return HttpResponseForbidden("forbidden page")
