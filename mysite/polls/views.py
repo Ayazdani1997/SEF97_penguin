@@ -106,12 +106,13 @@ def addOption(request):
     optionsTexts = body['options']
     for optionText in optionsTexts:
         try:
-            newOption = Option.objects.get(text=optionText)
+            optionDateTime = datetime.datetime.strptime(optionText, "%Y-%m-%d %H:%M")
+            newOption = Option.objects.get(start=optionDateTime, text=optionText)
             print("we already have the option")
 
         except Option.DoesNotExist:
             print("option does not exist")
-            newOption = Option.objects.create(text=optionText)
+            newOption = Option.objects.create(start=optionDateTime, text=optionText)
             newOption.save()
             print("created option")
         newPollOptAss = PollOptionAssociation.objects.create(poll=newPoll, option=newOption)
@@ -236,21 +237,23 @@ def getPollsOfUser(request):
     jsonResponse = json.dumps(response)
     return HttpResponse(jsonResponse)
 
-
+@csrf_exempt
 def finalizePoll(request):
     user = request.loggedInUser
-    targetPoll = Poll.objects.get(pollId=request.GET['pollId'])
-    targetOption = Option.objects.get(OptionId=request.GET['optionId'])
+    body = json.loads(request.body)['body']
+    targetPoll = Poll.objects.get(pollId=body['pollId'])
+    targetOption = Option.objects.get(OptionId=body['optionId'])
     if user != targetPoll.owner:
         return HttpResponse("you are not authorized to finalize this poll")
     else:
-        targetPoll.status = request.GET['optionId']
+        targetPoll.status = body['optionId']
         targetPoll.save()
         return HttpResponse(" successfully finialized poll %s" % targetPoll.name)
-
+@csrf_exempt
 def revokePoll(request):
     user = request.loggedInUser
-    targetPoll = Poll.objects.get(pollId=request.GET['pollId'])
+    body = json.loads(request.body)['body']
+    targetPoll = Poll.objects.get(pollId=body['pollId'])
     if user != targetPoll.owner:
         return HttpResponse("you are not authorized to revoke this poll")
     else:
