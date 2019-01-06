@@ -118,6 +118,14 @@ def addOption(request):
         newPollOptAss.save()
         print("created poll option ass new")
 
+def getOptionById(request):
+    try:
+        optionId = request.GET("optionId")
+        targetOption = Option.objects.get(pollId=optionId)
+    except Option.DoesNotExist:
+        print("option does not exist")
+    return HttpResponse({"text": targetOption.text})
+
 @csrf_exempt
 def addParticipants(request):
     body = json.loads(request.body)['body']
