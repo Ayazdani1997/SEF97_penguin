@@ -82,14 +82,16 @@ def login(request):
 
 @csrf_exempt
 def createNewPoll(request):
+    print("createpoll")
     user = request.loggedInUser
+    print(user)
     try:
         body = json.loads(request.body)['body']
+        print(body)
         pollName = body['name']
         pollDes = body['description']
         newPoll = Poll.objects.create(name=pollName, des=pollDes, owner=user)
         newPoll.save()
-
 
     except KeyError:
         return HttpResponseServerError("internal server error")
@@ -188,12 +190,12 @@ def saveChoiceOfUser(request):
             print(choice['answer'])
             pollOptionAssociation = PollOptionAssociation.objects.get(id=choice['id'])
             try:
-                oldChoice = Choice.objects.get(user= user , pollOptionAssociation=pollOptionAssociation, answer=choice['answer'])
+                newChoice = Choice.objects.get(user= user , pollOptionAssociation=pollOptionAssociation, answer=choice['answer'])
+            except Choice.DoesNotExist:
                 newChoice = Choice.objects.create(user=user, pollOptionAssociation=pollOptionAssociation,
                                                   answer=choice['answer'])
-            except Choice.DoesNotExist:
-                continue
-            newChoice.save()
+                newChoice.save()
+
     except PollOptionAssociation.DoesNotExist:
         return HttpResponse("requested polloptassociation does not exist in system!")
     except Option.DoesNotExist:
@@ -292,8 +294,11 @@ def checkMyPoll(request):
 
 def getCommentsOfOption(request):
     try:
+        print(request.GET)
         pollId = request.GET['pollId']
         optionId = request.GET['optionId']
+        print(pollId)
+        print(optionId)
     except KeyError:
         return HttpResponseBadRequest("no poll or option identified")
     option = Option.objects.get(OptionId=optionId)
@@ -311,10 +316,16 @@ def getCommentsOfOption(request):
 @csrf_exempt
 def saveCommentOfOption(request):
     try:
-        body = json.loads(request.body)
+        print("kooon")
+        body = json.loads(request.body)['body']
+        print("kooon2")
+        print(body)
         pollId = body['pollId']
+        print(pollId)
         optionId = body['optionId']
+        print(optionId)
         comment_text = body['comment_text']
+        print(comment_text)
     except KeyError:
         return HttpResponseBadRequest("no poll or option identified, plus, comment must have a text")
     option = Option.objects.get(OptionId=1)
