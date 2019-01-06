@@ -43,7 +43,7 @@ def getInvitedPollsByUser(user):
     try:
         invitaionRecords = list(Invitation.objects.filter(user=user))
         invitedPolls = [p.poll for p in invitaionRecords]
-        return [{"name": p.name, "description": p.des, "id": p.pollId} for p in invitedPolls]
+        return [{"status": p.status, "name": p.name, "description": p.des, "id": p.pollId} for p in invitedPolls]
     except Invitation.DoesNotExist:
         return []
 
@@ -232,6 +232,7 @@ def checkOverlap(user):
         if pollStatus:
             finalizedOptions.append({"option": Option.objects.get(OptionId=pollStatus), "choice": choice})
     options = [{"option": choice.pollOptionAssociation.option, "choice": choice} for choice in choices]
+
     for elem1 in options:
         overlap = False
         for elem2 in finalizedOptions:
