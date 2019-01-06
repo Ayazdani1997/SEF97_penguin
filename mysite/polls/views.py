@@ -11,10 +11,10 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 
 
-def notifyUser(user):
+def notifyUser(user, message="You have been invited to a meeting in penguin please check the website for more information"):
     send_mail(
         "Penguin: invitation to meeting",
-        "You have been invited to a meeting in penguin please check the website for more information",
+        message,
         "PenguinTeam@gmail.com",
         [user.email],
         fail_silently=False,
@@ -294,8 +294,9 @@ def revokePoll(request):
         targetPoll.status = 0
         targetPoll.save()
         invitationList = list(Invitation.objects.filter(poll=targetPoll))
+        revokeMsg = body['msg']
         for invitation in invitationList:
-            notifyUser(invitation.user)
+            notifyUser(invitation.user, revokeMsg)
         return HttpResponse(" Poll has been revoked and participants have been notified! %s" % targetPoll.name)
 
 
