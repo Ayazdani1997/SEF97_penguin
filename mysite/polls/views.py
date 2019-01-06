@@ -392,7 +392,7 @@ def saveCommentOfOption(request):
         print(comment_text)
     except KeyError:
         return HttpResponseBadRequest("no poll or option identified, plus, comment must have a text")
-    option = Option.objects.get(OptionId=1)
+    option = Option.objects.get(OptionId=optionId)
     poll = Poll.objects.get(pollId=pollId)
     if not isInvitedToPollOrOwner(request.loggedInUser, poll):
         return HttpResponseForbidden('you are not invited to this poll')
