@@ -240,10 +240,11 @@ def getPollsOfUser(request):
 def finalizePoll(request):
     user = request.loggedInUser
     targetPoll = Poll.objects.get(pollId=request.GET['pollId'])
+    targetOption = Option.objects.get(OptionId=request.GET['optionId'])
     if user != targetPoll.owner:
         return HttpResponse("you are not authorized to finalize this poll")
     else:
-        targetPoll.status = 1
+        targetPoll.status = request.GET['optionId']
         targetPoll.save()
         return HttpResponse(" successfully finialized poll %s" % targetPoll.name)
 
