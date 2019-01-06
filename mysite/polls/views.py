@@ -218,15 +218,18 @@ def saveChoiceOfUser(request):
     except KeyError:
         return HttpResponseServerError("internal server error")
     else:
-
-        return HttpResponse("votes have been submitted")
+        response = checkOverlap(user)
+        return HttpResponse(json.dumps(response))
 
 
 def checkOverlap(user):
     print("checkOverlap")
     choices = list(Choice.objects.filter(user=user, answer=1))
     print(choices)
-    options = [{"option": choice.pollOptionAssociation.option, "choice":choice} for choice in choices]
+    options = []
+    for choice in choices:
+        if choice.pollOptionAssociation.poll.status:
+            options.append({"option": choice.pollOptionAssociation.option, "choice": choice})
     for elem1 in options:
         overlap = False
         for elem2 in options:
@@ -284,8 +287,7 @@ def finalizePoll(request):
     else:
         targetPoll.status = body['optionId']
         targetPoll.save()
-        response = checkOverlap(user)
-        return HttpResponse(json.dumps(response))
+        return HttpResponse(" successfully finialized poll %s" % targetPoll.name)
 
 
 @csrf_exempt
