@@ -119,17 +119,20 @@ def addOption(request):
         newPollOptAss.save()
         print("created poll option ass new")
 
+
 def getOptionById(request):
     try:
         print("getOptionById")
         optionId = request.GET["optionId"]
         print(optionId)
         targetOption = Option.objects.get(OptionId=optionId)
-        print(targetOption)
+        print(targetOption.start)
+        print(targetOption.text)
     except Option.DoesNotExist:
         print("option does not exist")
 
     return HttpResponse(json.dumps({"text": targetOption.text}))
+
 
 @csrf_exempt
 def addParticipants(request):
@@ -145,6 +148,7 @@ def addParticipants(request):
         newInvitation.save()
 
 
+
 def getPollsById(request):
     try:
         pollId = request.GET['pollId']
@@ -158,14 +162,7 @@ def getPollsById(request):
         return HttpResponse(jsonPoll)
 
 
-def checkOverlap(request):
-    dateTime = request.GET['dateTime']
-    print (dateTime)
-    dateTime = datetime.datetime.strptime(dateTime, "%Y-%m-%d %H:%M")
-    print(dateTime)
 
-    user = getLoggedInUser()
-    return HttpResponse("checkoverlap")
 
 
 def getOptionsOfPoll(request):
@@ -219,6 +216,27 @@ def saveChoiceOfUser(request):
         return HttpResponseServerError("internal server error")
     else:
         return HttpResponse("choices saved")
+
+
+def checkOverlap(user):
+    print("checkOverlap")
+    choices = list(Choice.objects.filter(user=user, answer=1))
+    print(choices)
+    options = [choice.pollOptionAssociation.option.start for choice in choices]
+    for option1 in options:
+        count = 0
+        for option2 in options:
+            if option1 == option2:
+                count = count+1
+        if count>1:
+            print ("overlapDetected")
+    print(options)
+
+
+def checkOverlapTest(request):
+    user = request.loggedInUser
+    checkOverlap(user)
+    return HttpResponse("test done")
 
 @csrf_exempt
 def editPoll(request):
