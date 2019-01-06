@@ -18,6 +18,7 @@ urlpatterns = [
     path('checkOverlap', views.checkOverlap, name='checkOverlap'),
     path('addoption', views.addOption, name='addOption'),
     path('addparticipants', views.addParticipants, name='addparticipants'),
+    path('option', views.getOptionById, name='getOptionById'),
 
 
 
