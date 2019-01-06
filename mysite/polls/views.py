@@ -380,9 +380,7 @@ def getCommentsOfOption(request):
 @csrf_exempt
 def saveCommentOfOption(request):
     try:
-        print("kooon")
         body = json.loads(request.body)['body']
-        print("kooon2")
         print(body)
         pollId = body['pollId']
         print(pollId)
