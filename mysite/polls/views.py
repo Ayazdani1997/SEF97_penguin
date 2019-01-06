@@ -121,11 +121,15 @@ def addOption(request):
 
 def getOptionById(request):
     try:
-        optionId = request.GET("optionId")
-        targetOption = Option.objects.get(pollId=optionId)
+        print("getOptionById")
+        optionId = request.GET["optionId"]
+        print(optionId)
+        targetOption = Option.objects.get(OptionId=optionId)
+        print(targetOption)
     except Option.DoesNotExist:
         print("option does not exist")
-    return HttpResponse({"text": targetOption.text})
+
+    return HttpResponse(json.dumps({"text": targetOption.text}))
 
 @csrf_exempt
 def addParticipants(request):
