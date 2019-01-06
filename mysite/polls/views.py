@@ -56,6 +56,14 @@ def isInvitedToPollOrOwner(user, poll):
         return False
 
 
+def findChoiceOfThisOptionByUser(user, pollOptionAssociation):
+    try:
+        oldChoice = Choice.objects.get(user=user, pollOptionAssociation=pollOptionAssociation)
+        return True, oldChoice
+    except Choice.DoesNotExist:
+        return False, None
+
+
 # Create your views here.
 def login(request):
     try:
@@ -77,8 +85,9 @@ def login(request):
     else:
         userInfo = {'username': username, "email": email}
         response = HttpResponse(json.dumps(userInfo))
-        response.set_cookie('username', username)
+        response[ 'username' ] = username
         return response
+
 
 @csrf_exempt
 def createNewPoll(request):
@@ -97,6 +106,7 @@ def createNewPoll(request):
         return HttpResponseServerError("internal server error")
     else:
         return HttpResponse(json.dumps({'pollId': newPoll.pollId}))
+
 
 @csrf_exempt
 def addOption(request):
@@ -119,6 +129,7 @@ def addOption(request):
         newPollOptAss.save()
         print("created poll option ass new")
 
+
 def getOptionById(request):
     try:
         print("getOptionById")
@@ -131,12 +142,13 @@ def getOptionById(request):
 
     return HttpResponse(json.dumps({"text": targetOption.text}))
 
+
 @csrf_exempt
 def addParticipants(request):
     body = json.loads(request.body)['body']
     print(body)
     newPoll = Poll.objects.get(pollId=body['id'])
-    invitedUserEmails= body['participants']
+    invitedUserEmails = body['participants']
     for email in invitedUserEmails:
         targetUser = User.objects.get(email=email)
         print(targetUser)
@@ -160,7 +172,7 @@ def getPollsById(request):
 
 def checkOverlap(request):
     dateTime = request.GET['dateTime']
-    print (dateTime)
+    print(dateTime)
     dateTime = datetime.datetime.strptime(dateTime, "%Y-%m-%d %H:%M")
     print(dateTime)
 
@@ -202,12 +214,16 @@ def saveChoiceOfUser(request):
             print(choice['id'])
             print(choice['answer'])
             pollOptionAssociation = PollOptionAssociation.objects.get(id=choice['id'])
-            try:
-                newChoice = Choice.objects.get(user= user , pollOptionAssociation=pollOptionAssociation, answer=choice['answer'])
-            except Choice.DoesNotExist:
+            is_saved, old_choice = findChoiceOfThisOptionByUser(user, pollOptionAssociation)
+            print( is_saved )
+            if not is_saved:
                 newChoice = Choice.objects.create(user=user, pollOptionAssociation=pollOptionAssociation,
                                                   answer=choice['answer'])
                 newChoice.save()
+            else:
+                if old_choice is not None:
+                    newChoice = Choice.objects.update(user=user, pollOptionAssociation=pollOptionAssociation,
+                                                      answer=choice['answer'])
 
     except PollOptionAssociation.DoesNotExist:
         return HttpResponse("requested polloptassociation does not exist in system!")
@@ -220,6 +236,7 @@ def saveChoiceOfUser(request):
     else:
         return HttpResponse("choices saved")
 
+
 @csrf_exempt
 def editPoll(request):
     print('editpoll')
@@ -231,14 +248,13 @@ def editPoll(request):
         if (key == "newOption"):
             newOption = Option.objects.create(text=body[key])
             newOption.save()
-        elif key=="name":
+        elif key == "name":
             poll.name = body[key]
         elif key == "des":
             poll.des = body[key]
     poll.save()
 
     return HttpResponse("editpoll")
-
 
 
 def getPollsOfUser(request):
@@ -248,6 +264,7 @@ def getPollsOfUser(request):
     print(response)
     jsonResponse = json.dumps(response)
     return HttpResponse(jsonResponse)
+
 
 @csrf_exempt
 def finalizePoll(request):
@@ -279,7 +296,6 @@ def revokePoll(request):
         return HttpResponse(" Poll has been revoked and participants have been notified! %s" % targetPoll.name)
 
 
-
 def checkMyPoll(request):
     user = request.loggedInUser
     targetPoll = Poll.objects.get(pollId=request.GET['pollId'])
@@ -292,7 +308,7 @@ def checkMyPoll(request):
 
             for POA in pollOptionAssociations:
                 option = POA.option
-                optionChoice = {"id" : option.OptionId, "text": option.text}
+                optionChoice = {"id": option.OptionId, "text": option.text}
                 print(optionChoice)
 
                 choices = (list(Choice.objects.filter(pollOptionAssociation=POA)))
@@ -300,14 +316,14 @@ def checkMyPoll(request):
                 rejectors = []
                 maybe = []
                 for c in choices:
-                        print(c.user.username)
-                        print(c.answer)
-                        if (c.answer ==1):
-                            selectors.append({"name": c.user.username})
-                        elif (c.answer == 2):
-                            rejectors.append({"name": c.user.username})
-                        elif (c.answer == 3):
-                            maybe.append({"name": c.user.username})
+                    print(c.user.username)
+                    print(c.answer)
+                    if (c.answer == 1):
+                        selectors.append({"name": c.user.username})
+                    elif (c.answer == 2):
+                        rejectors.append({"name": c.user.username})
+                    elif (c.answer == 3):
+                        maybe.append({"name": c.user.username})
 
                 optionChoice["selectors"] = selectors
                 optionChoice["rejectors"] = rejectors
@@ -366,7 +382,7 @@ def saveCommentOfOption(request):
         return HttpResponseForbidden('you are not invited to this poll')
     pollOptionAssociation = PollOptionAssociation.objects.get(poll=poll, option=option)
     comment = Comment.objects.create(pollOptionAssociation=pollOptionAssociation, comment_text=comment_text,
-                           owner=request.loggedInUser)
+                                     owner=request.loggedInUser)
     comment.save()
     return HttpResponse()
 
