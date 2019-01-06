@@ -12,6 +12,8 @@ import json
 
 
 def notifyUser(user, message="You have been invited to a meeting in penguin please check the website for more information"):
+    print("notifyUser")
+    print(message)
     send_mail(
         "Penguin: invitation to meeting",
         message,
