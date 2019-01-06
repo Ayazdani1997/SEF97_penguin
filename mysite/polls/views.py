@@ -218,8 +218,8 @@ def saveChoiceOfUser(request):
     except KeyError:
         return HttpResponseServerError("internal server error")
     else:
-        response = checkOverlap(user)
-        return HttpResponse(json.dumps(response))
+
+        return HttpResponse("votes have been submitted")
 
 
 def checkOverlap(user):
@@ -284,7 +284,8 @@ def finalizePoll(request):
     else:
         targetPoll.status = body['optionId']
         targetPoll.save()
-        return HttpResponse(" successfully finialized poll %s" % targetPoll.name)
+        response = checkOverlap(user)
+        return HttpResponse(json.dumps(response))
 
 
 @csrf_exempt
