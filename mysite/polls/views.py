@@ -203,7 +203,9 @@ def saveChoiceOfUser(request):
             targetOption = Option.objects.get(OptionId=choice['optionId'])
             pollOptionAssociation = PollOptionAssociation.objects.get(poll=poll, option=targetOption)
             try:
-                newChoice = Choice.objects.get(user= user , pollOptionAssociation=pollOptionAssociation, answer=choice['answer'])
+                newChoice = Choice.objects.get(user= user , pollOptionAssociation=pollOptionAssociation)
+                newChoice.answer = choice['answer']
+                newChoice.save()
             except Choice.DoesNotExist:
                 newChoice = Choice.objects.create(user=user, pollOptionAssociation=pollOptionAssociation,
                                                   answer=choice['answer'])
