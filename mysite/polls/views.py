@@ -55,6 +55,12 @@ def isInvitedToPollOrOwner(user, poll):
             return True
         return False
 
+def isThisChoiceSavedByThisUser( user , pollOptionAssociation , choice ):
+    try:
+        oldChoice = Choice.objects.get(user=user, pollOptionAssociation=pollOptionAssociation, answer=choice['answer'])
+        return True
+    except Choice.DoesNotExist:
+        return False
 
 # Create your views here.
 def login(request):
@@ -187,13 +193,10 @@ def saveChoiceOfUser(request):
             print(choice['id'])
             print(choice['answer'])
             pollOptionAssociation = PollOptionAssociation.objects.get(id=choice['id'])
-            try:
-                oldChoice = Choice.objects.get(user= user , pollOptionAssociation=pollOptionAssociation, answer=choice['answer'])
+            if not isThisChoiceSavedByThisUser( user , pollOptionAssociation , choice ):
                 newChoice = Choice.objects.create(user=user, pollOptionAssociation=pollOptionAssociation,
-                                                  answer=choice['answer'])
-            except Choice.DoesNotExist:
-                continue
-            newChoice.save()
+                                              answer=choice['answer'])
+                newChoice.save()
     except PollOptionAssociation.DoesNotExist:
         return HttpResponse("requested polloptassociation does not exist in system!")
     except Option.DoesNotExist:
