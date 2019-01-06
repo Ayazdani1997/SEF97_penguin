@@ -10,6 +10,7 @@ urlpatterns = [
     path('polls', views.getPollsOfUser, name='getPollsOfUser'),
     path('emailTest', views.emailTest, name='emailTest'),
     path('finalize', views.finalizePoll, name='finalizePoll'),
+    path('revoke', views.revokePoll, name='revokePoll'),
     path('comments/', views.getCommentsOfOption, name='getCommentsOfOption'),
     path('saveComment', views.saveCommentOfOption, name='saveComment'),
     path('result', views.checkMyPoll, name='checkMyPoll'),

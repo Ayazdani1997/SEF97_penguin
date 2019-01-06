@@ -248,6 +248,19 @@ def finalizePoll(request):
         targetPoll.save()
         return HttpResponse(" successfully finialized poll %s" % targetPoll.name)
 
+def revokePoll(request):
+    user = request.loggedInUser
+    targetPoll = Poll.objects.get(pollId=request.GET['pollId'])
+    if user != targetPoll.owner:
+        return HttpResponse("you are not authorized to revoke this poll")
+    else:
+        targetPoll.status = 0
+        targetPoll.save()
+        invitationList = list(Invitation.objects.filter(poll=targetPoll))
+        for invitation in invitationList:
+            notifyUser(invitation.user)
+        return HttpResponse(" Poll has been revoked and participants have been notified! %s" % targetPoll.name)
+
 
 def checkMyPoll(request):
     user = request.loggedInUser
